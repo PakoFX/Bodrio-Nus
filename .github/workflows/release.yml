@@ -44,7 +44,17 @@ jobs:
           ls -lh app/bodrio.keystore
 
       - name: Build Debug APK (signed with bodrio.keystore)
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          set -o pipefail
+          ./gradlew assembleDebug --stacktrace 2>&1 | tee build_output.log
+
+      - name: Report Build Failure to Summary
+        if: failure()
+        run: |
+          echo "### ❌ Gradle Build Error Details" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          tail -n 80 build_output.log >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Prepare APK for Release
         run: |
