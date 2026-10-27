@@ -56,6 +56,17 @@ jobs:
           tail -n 80 build_output.log >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
+      - name: Push failure log to git branch
+        if: failure()
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git checkout -B build-logs
+          tail -n 120 build_output.log > last_build_error.txt
+          git add last_build_error.txt
+          git commit -m "ci: capture build error"
+          git push -f origin build-logs
+
       - name: Prepare APK for Release
         run: |
           mkdir -p release-apk
