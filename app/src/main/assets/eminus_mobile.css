@@ -220,102 +220,203 @@ div[mscrolltop] {
 /* --------------------------------------------------------------
    5. VISTA INTERNA DE MATERIA (COURSE CONTENT, SIDEBAR & MÓDULOS)
    -------------------------------------------------------------- */
-/* Barra lateral izquierda compacta y moderna */
-m-aside-left#m_aside_left,
-.m-aside-left {
-    width: 60px !important;
-    background-color: #FFFFFF !important;
-    border-right: 1px solid #E2E8F0 !important;
-    box-shadow: 2px 0 10px rgba(15, 23, 42, 0.06) !important;
-    z-index: 90 !important;
+/* Botón de hamburguesa único en la cabecera (ocultar el duplicado de escritorio) */
+#m_aside_left_minimize_toggle {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
-/* El contenido principal respeta el riel lateral de 60px para no quedar tapado */
+#m_aside_left_offcanvas_toggle {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+}
+
+
+/* Barra lateral izquierda compacta (riel de iconos 65px) - Oculta por defecto */
+m-aside-left#m_aside_left,
+.m-aside-left {
+    position: fixed !important;
+    top: 70px !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 65px !important;
+    background-color: #FFFFFF !important;
+    border-right: 1px solid #E2E8F0 !important;
+    box-shadow: 4px 0 16px rgba(15, 23, 42, 0.12) !important;
+    z-index: 1001 !important;
+    transform: translateX(-105%) !important;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
+/* Ocultar texto de los links de la barra lateral para que no se desborden */
+m-aside-left .m-menu__link-text,
+.m-aside-left .m-menu__link-text {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* Centrar los iconos en el riel de 65px */
+m-aside-left .m-menu__link,
+.m-aside-left .m-menu__link {
+    padding: 14px 0 !important;
+    justify-content: center !important;
+}
+
+m-aside-left .m-menu__link-icon,
+.m-aside-left .m-menu__link-icon {
+    margin: 0 !important;
+    font-size: 22px !important;
+    text-align: center !important;
+}
+
+/* El contenido principal ocupa el 100% por defecto (barra cerrada) */
 .ContentFromMain,
 .layout-main > .ContentFromMain,
 m-course {
-    margin-left: 60px !important;
-    width: calc(100% - 60px) !important;
-    max-width: calc(100% - 60px) !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
     box-sizing: border-box !important;
+    padding: 0 !important;
+    background-color: #EEF2F6 !important;
+    transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Fondo de la vista de módulos */
+m-course {
+    padding-bottom: 90px !important;
+}
+
+/* Estado ABIERTO cuando se presiona la hamburguesa */
+body.m-aside-left--on m-aside-left#m_aside_left,
+body.m-aside-left--on .m-aside-left,
+body.bodrio-aside-open m-aside-left#m_aside_left,
+body.bodrio-aside-open .m-aside-left {
+    transform: translateX(0) !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+}
+
+body.m-aside-left--on .ContentFromMain,
+body.m-aside-left--on .layout-main > .ContentFromMain,
+body.bodrio-aside-open .ContentFromMain,
+body.bodrio-aside-open .layout-main > .ContentFromMain {
+    margin-left: 65px !important;
+    width: calc(100% - 65px) !important;
+    max-width: calc(100% - 65px) !important;
+}
+
+/* Backdrop suave para cerrar al tocar fuera */
+.m-aside-left-overlay {
+    background: rgba(15, 23, 42, 0.35) !important;
+    backdrop-filter: blur(2px) !important;
+    z-index: 1000 !important;
+}
+
+
+/* Fondo de la vista de módulos y actividades */
 .m-content-sub,
-m-content-list {
+m-content-list,
+m-course-activity,
+m-activity-list {
     background-color: #EEF2F6 !important;
+    width: 100% !important;
+    padding: 0 !important;
 }
 
 /* Banner de la materia */
 .EMINUSPleca {
     max-height: none !important;
-    min-height: 120px !important;
-    border-radius: 18px !important;
-    margin: 10px 8px !important;
+    min-height: auto !important;
+    border-radius: 16px !important;
+    margin: 10px 8px 12px 8px !important;
     overflow: hidden !important;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12) !important;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12) !important;
     background-size: cover !important;
     background-position: center !important;
+    position: relative !important;
 }
 
-.PlecaOverlay {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.65) 100%) !important;
-    padding: 14px 12px !important;
-    min-height: 120px !important;
+.PlecaOverlay,
+.PlecaOverlayChange {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(30, 41, 59, 0.82) 100%) !important;
+    padding: 14px 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
-.PlecaOverlay .container {
+.PlecaOverlay .container,
+.PlecaOverlayChange .container {
     padding: 0 !important;
-    max-width: 100% !important;
 }
 
-.PlecaOverlay span.g-font-size-18 {
-    font-size: 16px !important;
+.PlecaOverlay span.g-font-size-18,
+.PlecaOverlayChange span.g-font-size-18 {
+    font-size: 15.5px !important;
     font-weight: 800 !important;
     color: #FFFFFF !important;
-    line-height: 1.3 !important;
-    display: block !important;
+    line-height: 1.35 !important;
+    padding-left: 0 !important;
     margin-bottom: 6px !important;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8) !important;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85) !important;
 }
 
 .TittlePleca {
     color: #CBD5E1 !important;
-    font-size: 13.5px !important;
+    font-size: 13px !important;
     font-weight: 600 !important;
     padding: 0 !important;
 }
 
-/* Buscador dentro del banner */
-.EMINUSPleca .col-lg-7 {
-    width: 100% !important;
-    padding: 6px 0 0 0 !important;
-    justify-content: flex-start !important;
+/* Ocultar barra de búsqueda y elementos residuales en el banner */
+.PlecaOverlayChange > div:nth-child(2),
+.PlecaOverlay > div:nth-child(2),
+.EMINUSPleca .col-5.input-group,
+.EMINUSPleca .input-group,
+.EMINUSPleca .extra-margin,
+.EMINUSPleca input[placeholder*="Search"] {
+    display: none !important;
+    visibility: hidden !important;
 }
 
-.EMINUSPleca .col-5.input-group,
-.EMINUSPleca .input-group {
+.PlecaOverlayChange > div:first-child,
+.PlecaOverlay > div:first-child,
+.EMINUSPleca .col-6.mr-5 {
     width: 100% !important;
     max-width: 100% !important;
     flex: 0 0 100% !important;
-    background: #FFFFFF !important;
-    border-radius: 18px !important;
-    overflow: hidden !important;
-    height: 38px !important;
-    margin-top: 6px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    margin-right: 0 !important;
+    padding: 0 !important;
 }
 
-.EMINUSPleca input[placeholder*="Search"] {
-    font-size: 13px !important;
-    padding: 6px 14px !important;
-    background: transparent !important;
+/* Iframe de Actividades */
+.activitiesContainer {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+#iframeActividades,
+iframe.app-b-frame,
+m-activity-resource-list-student {
+    width: 100% !important;
+    max-width: 100% !important;
     border: none !important;
-    color: #1E293B !important;
-    flex: 1 1 auto !important;
+    display: block !important;
 }
 
-/* Módulos, unidades y tarjetas de actividades */
+/* Módulos, unidades y tarjetas */
 .m-content-sub .container {
     padding: 0 8px !important;
     max-width: 100% !important;
@@ -353,4 +454,5 @@ mat-expansion-panel,
     margin-bottom: 10px !important;
     overflow: hidden !important;
 }
+
 

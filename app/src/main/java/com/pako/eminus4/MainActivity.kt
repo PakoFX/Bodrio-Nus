@@ -306,9 +306,14 @@ class MainActivity : AppCompatActivity() {
             val cssContent = assets.open("eminus_mobile.css").bufferedReader().use { it.readText() }
             val encodedCss = android.util.Base64.encodeToString(cssContent.toByteArray(), android.util.Base64.NO_WRAP)
 
+            val iframeCssContent = assets.open("eminus_iframe.css").bufferedReader().use { it.readText() }
+            val encodedIframeCss = android.util.Base64.encodeToString(iframeCssContent.toByteArray(), android.util.Base64.NO_WRAP)
+
             val injection = """
                 (function() {
                     var styleId = 'eminus-mobile-injected-style';
+                    var iframeStyleId = 'eminus-iframe-injected-style';
+
                     function asegurarEstilo() {
                         var style = document.getElementById(styleId);
                         if (!style) {
@@ -317,8 +322,9 @@ class MainActivity : AppCompatActivity() {
                             style.type = 'text/css';
                             (document.head || document.documentElement).appendChild(style);
                         }
-                        if (style.textContent !== atob('$encodedCss')) {
-                            style.textContent = atob('$encodedCss');
+                        var css = atob('$encodedCss');
+                        if (style.textContent !== css) {
+                            style.textContent = css;
                         }
 
                         // Bloquear zoom multitáctil y fijar escala 1:1 nativa (como pidió el usuario)
@@ -331,12 +337,83 @@ class MainActivity : AppCompatActivity() {
                             m.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no';
                             (document.head || document.documentElement).appendChild(m);
                         }
+
+                        // Asegurar también los iframes (vistas de actividades / exámenes / foros)
+                        asegurarEstiloIframes();
+
+                        // Configurar botón de hamburguesa y cierre automático de la barra lateral
+                        configurarToggleSidebar();
                     }
 
-                    // Asegurar estilo inmediatamente al cargar
+                    function configurarToggleSidebar() {
+                        var togglers = document.querySelectorAll('#m_aside_left_offcanvas_toggle, #m_aside_left_minimize_toggle, .m-brand__toggler');
+                        togglers.forEach(function(btn) {
+                            if (!btn.__bodrioBound) {
+                                btn.__bodrioBound = true;
+                                btn.addEventListener('click', function(e) {
+                                    var isOpen = document.body.classList.contains('m-aside-left--on') || document.body.classList.contains('bodrio-aside-open');
+                                    if (isOpen) {
+                                        document.body.classList.remove('m-aside-left--on', 'bodrio-aside-open');
+                                    } else {
+                                        document.body.classList.add('m-aside-left--on', 'bodrio-aside-open');
+                                    }
+                                }, true);
+                            }
+                        });
+
+                        // Cerrar al hacer clic en cualquier opción de la barra
+                        var asideLinks = document.querySelectorAll('m-aside-left a, .m-aside-left a');
+                        asideLinks.forEach(function(link) {
+                            if (!link.__bodrioBound) {
+                                link.__bodrioBound = true;
+                                link.addEventListener('click', function() {
+                                    setTimeout(function() {
+                                        document.body.classList.remove('m-aside-left--on', 'bodrio-aside-open');
+                                    }, 150);
+                                }, true);
+                            }
+                        });
+
+                        // Cerrar al tocar el overlay oscuro
+                        var overlays = document.querySelectorAll('.m-aside-left-overlay');
+                        overlays.forEach(function(ov) {
+                            if (!ov.__bodrioBound) {
+                                ov.__bodrioBound = true;
+                                ov.addEventListener('click', function() {
+                                    document.body.classList.remove('m-aside-left--on', 'bodrio-aside-open');
+                                }, true);
+                            }
+                        });
+                    }
+
+
+                    function asegurarEstiloIframes() {
+                        try {
+                            var iframes = document.querySelectorAll('iframe');
+                            for (var i = 0; i < iframes.length; i++) {
+                                var f = iframes[i];
+                                var doc = f.contentDocument;
+                                if (doc && (doc.head || doc.documentElement)) {
+                                    var s = doc.getElementById(iframeStyleId);
+                                    if (!s) {
+                                        s = doc.createElement('style');
+                                        s.id = iframeStyleId;
+                                        s.type = 'text/css';
+                                        (doc.head || doc.documentElement).appendChild(s);
+                                    }
+                                    var ifrCss = atob('$encodedIframeCss');
+                                    if (s.textContent !== ifrCss) {
+                                        s.textContent = ifrCss;
+                                    }
+                                }
+                            }
+                        } catch(e) {}
+                    }
+
+                    // Asegurar estilos inmediatamente al cargar
                     asegurarEstilo();
 
-                    // Detectar transiciones de Angular SPA (cuando entras de login a cursos o navegas)
+                    // Detectar transiciones de Angular SPA y creación de iframes
                     if (!window.__eminusSpaHooked) {
                         window.__eminusSpaHooked = true;
                         var origPush = history.pushState;
@@ -358,16 +435,29 @@ class MainActivity : AppCompatActivity() {
                             setTimeout(asegurarEstilo, 1000);
                             setTimeout(asegurarEstilo, 2000);
                         }, true);
+
+                        // Observador de mutaciones para aplicar estilos a nuevos iframes o vistas creadas
+                        var observer = new MutationObserver(function() {
+                            asegurarEstilo();
+                        });
+                        observer.observe(document.body || document.documentElement, {
+                            childList: true,
+                            subtree: true
+                        });
+
+                        // Monitoreo periódico ligero para garantizar persistencia en iframes SPA lentos
+                        setInterval(asegurarEstiloIframes, 1500);
                     }
                 })();
             """.trimIndent()
 
             webView.evaluateJavascript(injection, null)
-            Log.d("EMINUS_STYLE", "CSS móvil inyectado con éxito")
+            Log.d("EMINUS_STYLE", "CSS móvil e iframe inyectados con éxito")
         } catch (e: Exception) {
             Log.e("EMINUS_STYLE", "Error al inyectar CSS", e)
         }
     }
+
 
     /**
      * Descarga el archivo de forma nativa e independiente usando las cookies de sesión
