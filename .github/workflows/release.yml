@@ -28,20 +28,9 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Restore keystore from secret (safe fallback)
+      - name: Verify signing keystore
         run: |
-          if [ -n "${{ secrets.BODRIO_KEYSTORE_B64 }}" ]; then
-            echo "${{ secrets.BODRIO_KEYSTORE_B64 }}" | base64 --decode > app/bodrio.keystore.tmp
-            if [ -s app/bodrio.keystore.tmp ]; then
-              mv app/bodrio.keystore.tmp app/bodrio.keystore
-            fi
-          elif [ -n "${{ secrets.BODRIO_KEYSTORE_BASE64 }}" ]; then
-            echo "${{ secrets.BODRIO_KEYSTORE_BASE64 }}" | base64 --decode > app/bodrio.keystore.tmp
-            if [ -s app/bodrio.keystore.tmp ]; then
-              mv app/bodrio.keystore.tmp app/bodrio.keystore
-            fi
-          fi
-          ls -lh app/bodrio.keystore
+          keytool -list -keystore app/bodrio.keystore -storepass android -alias bodrio
 
       - name: Build Debug APK (signed with bodrio.keystore)
         run: |
