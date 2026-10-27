@@ -118,4 +118,94 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Visor interno: popups de "Ver en línea" y PDFs, sin salir de la app -->
+    <LinearLayout
+        android:id="@+id/viewerOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#FF0B1220"
+        android:clickable="true"
+        android:elevation="24dp"
+        android:focusable="true"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="#E60A192F"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingEnd="12dp">
+
+            <TextView
+                android:id="@+id/btnCerrarVisor"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:paddingStart="8dp"
+                android:paddingEnd="12dp"
+                android:text="✕  Cerrar visor"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtTituloVisor"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="end"
+                android:maxLines="1"
+                android:text="Ver en línea"
+                android:textColor="#00E676"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/viewerProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:max="100"
+            android:progress="0"
+            android:visibility="gone" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <FrameLayout
+                android:id="@+id/viewerWebContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <androidx.core.widget.NestedScrollView
+                android:id="@+id/pdfScroll"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#EEF2F6"
+                android:fillViewport="true"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:id="@+id/pdfPages"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingBottom="16dp" />
+            </androidx.core.widget.NestedScrollView>
+        </FrameLayout>
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
