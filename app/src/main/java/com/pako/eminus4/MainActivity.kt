@@ -1460,39 +1460,44 @@ class MainActivity : AppCompatActivity() {
                         // Monitoreo periódico ligero para garantizar persistencia en iframes SPA lentos
                         setInterval(asegurarEstiloIframes, 1500);
 
-                        // Badge de créditos en la pantalla de login
+                        // Badge @PakoFX: aparece solo en login, desaparece al navegar
                         setInterval(function() {
                             var badgeId = 'bodrio-login-badge';
-                            if (document.getElementById(badgeId)) return;
-                            // Buscar el contenedor del formulario de login de Eminus 4
-                            var loginForm = document.querySelector('m-login-v2') ||
-                                            document.querySelector('app-login') ||
-                                            document.querySelector('[class*="m-login__wrapper"]') ||
-                                            document.querySelector('form:has(input[placeholder="Usuario"])') ||
-                                            document.querySelector('form:has(input[placeholder="Password"])') ||
-                                            null;
-                            if (!loginForm) return;
-                            var badge = document.createElement('div');
-                            badge.id = badgeId;
-                            badge.textContent = '\u00A0\u00A0@PakoFX  \u00B7  v1.2\u00A0\u00A0';
-                            badge.style.cssText = [
-                                'display:block',
-                                'text-align:center',
-                                'font-size:11px',
-                                'font-weight:600',
-                                'letter-spacing:0.8px',
-                                'color:#94A3B8',
-                                'margin:10px auto 0',
-                                'padding:4px 12px',
-                                'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
-                                'pointer-events:none',
-                                'user-select:none'
-                            ].join(';');
-                            loginForm.appendChild(badge);
-                        }, 600);
+                            var campoLogin = document.querySelector('input[placeholder="Usuario"]') ||
+                                             document.querySelector('input[name="usuario"]');
+                            var badge = document.getElementById(badgeId);
+                            if (campoLogin) {
+                                // Estamos en login: crear si no existe
+                                if (!badge) {
+                                    badge = document.createElement('div');
+                                    badge.id = badgeId;
+                                    badge.textContent = '@PakoFX \u00B7 v1.3';
+                                    badge.style.cssText = [
+                                        'position:fixed',
+                                        'bottom:72px',
+                                        'left:0',
+                                        'right:0',
+                                        'text-align:center',
+                                        'font-size:11px',
+                                        'font-weight:600',
+                                        'letter-spacing:0.8px',
+                                        'color:#94A3B8',
+                                        'pointer-events:none',
+                                        'user-select:none',
+                                        'z-index:99999',
+                                        'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'
+                                    ].join(';');
+                                    document.body.appendChild(badge);
+                                }
+                            } else {
+                                // Salimos del login: eliminar el badge
+                                if (badge) badge.parentNode.removeChild(badge);
+                            }
+                        }, 500);
                     }
                 })();
             """.trimIndent()
+
 
 
             webView.evaluateJavascript(injection, null)
