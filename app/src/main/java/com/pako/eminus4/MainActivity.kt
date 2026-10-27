@@ -1321,6 +1321,12 @@ class MainActivity : AppCompatActivity() {
             val iframeCssContent = assets.open("eminus_iframe.css").bufferedReader().use { it.readText() }
             val encodedIframeCss = android.util.Base64.encodeToString(iframeCssContent.toByteArray(), android.util.Base64.NO_WRAP)
 
+            val appVersion = try {
+                packageManager.getPackageInfo(packageName, 0).versionName ?: "1.4"
+            } catch (e: Exception) {
+                "1.4"
+            }
+
             val injection = """
                 (function() {
                     var styleId = 'eminus-mobile-injected-style';
@@ -1460,38 +1466,56 @@ class MainActivity : AppCompatActivity() {
                         // Monitoreo periódico ligero para garantizar persistencia en iframes SPA lentos
                         setInterval(asegurarEstiloIframes, 1500);
 
-                        // Badge @PakoFX: aparece solo en login, desaparece al navegar
+                        // Badge @PakoFX: aparece solo en login, en la parte inferior, sin duplicarse
                         setInterval(function() {
                             var badgeId = 'bodrio-login-badge';
                             var campoLogin = document.querySelector('input[placeholder="Usuario"]') ||
-                                             document.querySelector('input[name="usuario"]');
+                                             document.querySelector('input[placeholder*="Usuario" i]') ||
+                                             document.querySelector('input[name="usuario"]') ||
+                                             document.querySelector('form input[type="password"]');
                             var badge = document.getElementById(badgeId);
                             if (campoLogin) {
-                                // Estamos en login: crear si no existe
                                 if (!badge) {
+                                    // Limpiar cualquier posible duplicado huérfano si existiese
+                                    var viejos = document.querySelectorAll('#' + badgeId);
+                                    for (var i = 0; i < viejos.length; i++) {
+                                        if (viejos[i].parentNode) viejos[i].parentNode.removeChild(viejos[i]);
+                                    }
+
                                     badge = document.createElement('div');
                                     badge.id = badgeId;
-                                    badge.textContent = '@PakoFX \u00B7 v1.3';
+                                    badge.textContent = '@PakoFX \u00B7 v$appVersion';
                                     badge.style.cssText = [
                                         'position:fixed',
                                         'bottom:72px',
                                         'left:0',
                                         'right:0',
                                         'text-align:center',
-                                        'font-size:11px',
+                                        'font-size:11.5px',
                                         'font-weight:600',
                                         'letter-spacing:0.8px',
                                         'color:#94A3B8',
                                         'pointer-events:none',
                                         'user-select:none',
                                         'z-index:99999',
+                                        'transition:opacity 0.2s ease',
                                         'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'
                                     ].join(';');
                                     document.body.appendChild(badge);
                                 }
+                                // Ocultar si el teclado está abierto o si el usuario está interactuando con un campo
+                                var activo = document.activeElement;
+                                var escribiendo = activo && (activo.tagName === 'INPUT' || activo.tagName === 'TEXTAREA');
+                                if (escribiendo || window.innerHeight < 520) {
+                                    badge.style.opacity = '0';
+                                } else {
+                                    badge.style.opacity = '1';
+                                }
                             } else {
                                 // Salimos del login: eliminar el badge
-                                if (badge) badge.parentNode.removeChild(badge);
+                                if (badge && badge.parentNode) {
+                                    badge.parentNode.removeChild(badge);
+                                }
                             }
                         }, 500);
                     }
