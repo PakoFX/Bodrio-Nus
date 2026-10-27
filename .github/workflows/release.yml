@@ -28,7 +28,11 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Build Debug APK
+      - name: Restore keystore from secret
+        run: |
+          echo "${{ secrets.BODRIO_KEYSTORE_B64 }}" | base64 --decode > app/bodrio.keystore
+
+      - name: Build Debug APK (signed with bodrio.keystore)
         run: ./gradlew assembleDebug
 
       - name: Prepare APK for Release
