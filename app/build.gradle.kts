@@ -18,8 +18,21 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("common") {
+            storeFile = file("bodrio.keystore")
+            storePassword = "android"
+            keyAlias = "bodrio"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("common")
+        }
         release {
+            signingConfig = signingConfigs.getByName("common")
             optimization {
                 enable = true
                 packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
