@@ -216,3 +216,141 @@ div[mscrolltop] {
     opacity: 0 !important;
     pointer-events: none !important;
 }
+
+/* --------------------------------------------------------------
+   5. VISTA INTERNA DE MATERIA (COURSE CONTENT, SIDEBAR & MÓDULOS)
+   -------------------------------------------------------------- */
+/* Barra lateral izquierda compacta y moderna */
+m-aside-left#m_aside_left,
+.m-aside-left {
+    width: 60px !important;
+    background-color: #FFFFFF !important;
+    border-right: 1px solid #E2E8F0 !important;
+    box-shadow: 2px 0 10px rgba(15, 23, 42, 0.06) !important;
+    z-index: 90 !important;
+}
+
+/* El contenido principal respeta el riel lateral de 60px para no quedar tapado */
+.ContentFromMain,
+.layout-main > .ContentFromMain,
+m-course {
+    margin-left: 60px !important;
+    width: calc(100% - 60px) !important;
+    max-width: calc(100% - 60px) !important;
+    box-sizing: border-box !important;
+}
+
+/* Fondo de la vista de módulos */
+.m-content-sub,
+m-content-list {
+    background-color: #EEF2F6 !important;
+}
+
+/* Banner de la materia */
+.EMINUSPleca {
+    max-height: none !important;
+    min-height: 120px !important;
+    border-radius: 18px !important;
+    margin: 10px 8px !important;
+    overflow: hidden !important;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12) !important;
+    background-size: cover !important;
+    background-position: center !important;
+}
+
+.PlecaOverlay {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.65) 100%) !important;
+    padding: 14px 12px !important;
+    min-height: 120px !important;
+}
+
+.PlecaOverlay .container {
+    padding: 0 !important;
+    max-width: 100% !important;
+}
+
+.PlecaOverlay span.g-font-size-18 {
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    color: #FFFFFF !important;
+    line-height: 1.3 !important;
+    display: block !important;
+    margin-bottom: 6px !important;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8) !important;
+}
+
+.TittlePleca {
+    color: #CBD5E1 !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    padding: 0 !important;
+}
+
+/* Buscador dentro del banner */
+.EMINUSPleca .col-lg-7 {
+    width: 100% !important;
+    padding: 6px 0 0 0 !important;
+    justify-content: flex-start !important;
+}
+
+.EMINUSPleca .col-5.input-group,
+.EMINUSPleca .input-group {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    background: #FFFFFF !important;
+    border-radius: 18px !important;
+    overflow: hidden !important;
+    height: 38px !important;
+    margin-top: 6px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.EMINUSPleca input[placeholder*="Search"] {
+    font-size: 13px !important;
+    padding: 6px 14px !important;
+    background: transparent !important;
+    border: none !important;
+    color: #1E293B !important;
+    flex: 1 1 auto !important;
+}
+
+/* Módulos, unidades y tarjetas de actividades */
+.m-content-sub .container {
+    padding: 0 8px !important;
+    max-width: 100% !important;
+}
+
+.m-kt-portlet-unit,
+.kt-portlet_brd,
+div[role="alert"][class*="m-kt-portlet"] {
+    background: #FFFFFF !important;
+    border-radius: 16px !important;
+    border: 1px solid #E2E8F0 !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
+    margin-bottom: 12px !important;
+    padding: 14px !important;
+}
+
+.unit-padding-top h3,
+.d-brd-separator h3,
+h3.g-font-size-20 {
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    color: #0F172A !important;
+    margin-top: 12px !important;
+}
+
+/* Tarjetas de actividades y foros */
+mat-expansion-panel,
+.mat-expansion-panel,
+.card.m-card-body,
+[class*="accordion"] .card {
+    border-radius: 14px !important;
+    border: 1px solid #E2E8F0 !important;
+    background: #FFFFFF !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+    margin-bottom: 10px !important;
+    overflow: hidden !important;
+}
+
