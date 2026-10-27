@@ -162,6 +162,20 @@ class MainActivity : AppCompatActivity() {
 
         // Cargar Eminus 4 inicial
         webView.loadUrl("https://eminus.uv.mx/eminus4/")
+
+        // Verificar automáticamente en segundo plano si hay actualizaciones en GitHub
+        AppUpdater.verificarActualizaciones(this, silent = true)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Si el usuario acaba de habilitar el permiso de instalar fuentes desconocidas, reanudar instalación
+        val pendingApk = AppUpdater.pendingApkToInstall
+        if (pendingApk != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (packageManager.canRequestPackageInstalls()) {
+                AppUpdater.instalarApk(this, pendingApk)
+            }
+        }
     }
 
     override fun onPause() {
@@ -207,7 +221,7 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Volviendo a Eminus...", Toast.LENGTH_SHORT).show()
         }
 
-        // Botón Recargar en la barra flotante
+        // Botón Recargar en la barra flotante (un toque: recarga, toque sostenido: buscar actualizaciones)
         btnNavReload.setOnClickListener {
             val visor = popupWebView
             if (visorActivo() && visor != null) {
@@ -215,6 +229,11 @@ class MainActivity : AppCompatActivity() {
             } else {
                 webView.reload()
             }
+        }
+        btnNavReload.setOnLongClickListener {
+            Toast.makeText(this, "Buscando actualizaciones...", Toast.LENGTH_SHORT).show()
+            AppUpdater.verificarActualizaciones(this, silent = false)
+            true
         }
     }
 
