@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Birrete académico superior (Representando educación universitaria UV) -->
+    <!-- Rombo superior del birrete -->
+    <path
+        android:pathData="M 54,26 L 76,35 L 54,44 L 32,35 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="32"
+                android:startY="26"
+                android:endX="76"
+                android:endY="44"
+                android:type="linear">
+                <item android:color="#00A8FF" android:offset="0.0" />
+                <item android:color="#0066CC" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Casquete inferior del birrete -->
+    <path
+        android:fillColor="#004D99"
+        android:pathData="M 40,39 Q 54,47 68,39 L 68,43 Q 54,51 40,43 Z" />
+
+    <!-- Borla dorada del birrete -->
+    <path
+        android:strokeColor="#FFC837"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M 73,36 L 76,46 L 76,53" />
+    <path
+        android:fillColor="#FFC837"
+        android:pathData="M 76, 54 m -2.2, 0 a 2.2,2.2 0 1,0 4.4,0 a 2.2,2.2 0 1,0 -4.4,0" />
+
+    <!-- Letra E estilizada de Eminus (Moderna, con puntas redondeadas) -->
+    <!-- Columna vertical -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 36,52 L 44,52 L 44,82 L 36,82 Z" />
+
+    <!-- Barra superior de la E -->
+    <path
+        android:pathData="M 44,52 L 68,52 C 70.5,52 72,53.5 72,55.5 C 72,57.5 70.5,59 68,59 L 44,59 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="44"
+                android:startY="52"
+                android:endX="72"
+                android:endY="59"
+                android:type="linear">
+                <item android:color="#FFFFFF" android:offset="0.0" />
+                <item android:color="#E0E8F5" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Barra media de la E (Verde institucional UV) -->
+    <path
+        android:pathData="M 44,63.5 L 63,63.5 C 65,63.5 66.5,64.8 66.5,66.5 C 66.5,68.2 65,69.5 63,69.5 L 44,69.5 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="44"
+                android:startY="63.5"
+                android:endX="66.5"
+                android:endY="69.5"
+                android:type="linear">
+                <item android:color="#00E676" android:offset="0.0" />
+                <item android:color="#00B0FF" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Barra inferior de la E -->
+    <path
+        android:pathData="M 44,75 L 68,75 C 70.5,75 72,76.5 72,78.5 C 72,80.5 70.5,82 68,82 L 44,82 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="44"
+                android:startY="75"
+                android:endX="72"
+                android:endY="82"
+                android:type="linear">
+                <item android:color="#FFFFFF" android:offset="0.0" />
+                <item android:color="#E0E8F5" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Insignia del número 4 en la esquina inferior derecha -->
+    <path
+        android:fillColor="#00C853"
+        android:pathData="M 76, 75 m -6, 0 a 6,6 0 1,0 12,0 a 6,6 0 1,0 -12,0" />
+
+    <!-- Trazo del número '4' blanco dentro del círculo -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M 76.5,72.5 L 73.5,75.5 L 78.5,75.5 M 76.5,72.5 L 76.5,77.5" />
+
+</vector>
