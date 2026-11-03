@@ -138,14 +138,21 @@ com.pako.eminus4/
 14. **Pestaña Avisos (`NotificationsFragment`):** Consume `Global/NotificacionesUsuario`, mostrando tarjetas para Actividades, Exámenes, Foros y Mensajes no leídos.
 15. **Pestaña Perfil (`ProfileFragment`):** Credencial digital institucional con foto de perfil servida desde `/eminusapi/profiles/...`, matrícula, campus, correo UV, correo alterno, estado del token JWT, botón para buscar actualizaciones (`AppUpdater`) y diálogo de confirmación para cerrar sesión.
 16. **Detalle de Curso y Actividades (RESUELTO sesión 2026-11-03):** El endpoint institucional real para estudiantes es `GET https://eminus.uv.mx/eminusapi/api/Actividad/getActividadesEstudiante/{idCurso}` (servido por `API_GLOBAL_URL`, no por `eminusapi8` que arrojaba error 400 "Falta idCurso"). La respuesta es un array JSON directo con `titulo`, `calificacion`, `valor`, `fechaTermino` y `estadoEntrega`. Mapeado exitosamente en `Activity.kt`, `EminusApiClient.kt` y `ActivityAdapter.kt`.
+17. **Pantalla de Detalle de Actividad y Descarga de Adjuntos (`ActivityDetailActivity`) (sesión 2026-11-03):**
+    - Creada `ActivityDetailActivity` con Material 3 Toolbar respetando WindowInsets / notch.
+    - Metadatos en tiempo real: título, valor/calificación con badge dinámico, fechas (inicio, límite y entrega).
+    - Renderizado limpio de instrucciones en HTML institucional (`HtmlCompat` + links interactivos).
+    - Detección y listado de archivos adjuntos del docente (`archivosActsConTamano`) con icono dinámico según extensión (`.pdf`, `.pptx`, `.docx`, etc.) y descarga directa vía `DownloadManager` institucional contra `actividad/descargaActividadArchivo/{idCurso}/{idActividad}/{idArchivo}`.
+    - Área de entrega con selector nativo Storage Access Framework (`ActivityResultContracts.GetContent()`), vista previa del archivo seleccionado y botón de envío.
 
 ### 🔄 En Proceso / Pausado
-- Ninguno en este momento.
+- **Sistema de Envío Multipart de Entregas:** Implementar el upload multipart en `EminusApiClient` (`/actividad/adjuntarEntrega`) y confirmación (`/InsertaActividadEntrega`).
 
 ### 🔲 Pendiente
+- [ ] Subida multipart a Eminus (`/actividad/adjuntarEntrega`)
+- [ ] Confirmación y modificación de entrega (`/InsertaActividadEntrega` y `/ModificarEntrega`)
 - [ ] Manejo proactivo de token expirado (verificar `tokenExpiration` al iniciar antes de hacer llamadas)
 - [ ] Caché local de cursos y avisos (Room DB o JSON) para modo sin red / offline
-- [ ] Pantalla de recursos/materiales del curso (endpoint por descubrir — requiere ingeniería inversa)
 - [ ] Animaciones de transición entre Activities (Shared Element Transition)
 - [ ] Soporte landscape / pantallas grandes
 - [ ] Build de release firmado y publicación en GitHub Releases
@@ -160,17 +167,23 @@ Tras análisis de `main.js` del cliente Angular de la UV, se descubrió la separ
    - Requiere Bearer token.
 2. **API Global / v1 (`https://eminus.uv.mx/eminusapi/api/`):**
    - Maneja notificaciones globales (`Global/NotificacionesUsuario`), perfil de estudiante (`Usuario/getUsuario`) y actividades de un curso por estudiante (`Actividad/getActividadesEstudiante/{idCurso}`).
-   - Requiere Bearer token.
-   - Maneja notificaciones globales (`Global/NotificacionesUsuario`) y perfil de usuario (`Usuario/getUsuario`).
+   - Detalle de actividad para estudiante: `GET Actividad/getActividadEstudiante/{idCurso}/{idActividad}`.
    - Requiere Bearer token.
 3. **Repositorio Estático (`https://eminus.uv.mx/eminusapi/`):**
    - Servidor de archivos estáticos públicos para fotos de perfil (`/profiles/{hash}.png`) y portadas de cursos (`/thumbnail/{ruta}`). No requiere tokens.
 
-### Próximo paso sugerido
-1. Agregar log en el interceptor de Coil en `EminusApp.kt` para imprimir las cookies exactas que se leen del `CookieManager` para `eminus.uv.mx`.
-2. Comparar con las cookies visibles en el DevTools del browser.
-3. Si `roamingToken` no está en el `CookieManager`, hay que extraerlo del `localStorage` del WebView (igual que el `accessToken`) y guardarlo en `SessionManager`.
-4. Alternativamente: hacer un request con `EminusApiClient` (OkHttp, que sí maneja cookies correctamente) a la URL del thumbnail y escribir el bitmap manualmente.
+---
+
+## 10. Flujo de Entregas y Adjuntos Descubierto en Eminus 4
+
+Endpoints de entrega analizados en `main.js`:
+- `GET Actividad/getActividadEstudiante/{idCurso}/{idActividad}`: Retorna detalles de la actividad, fechas epoch, calificación y descripción HTML.
+- `POST actividad/descargaActividadArchivo`: Descarga archivos adjuntos puestos por el profesor.
+- `POST actividad/adjuntarEntrega`: Sube un archivo adjunto para la entrega del estudiante (multipart).
+- `POST Actividad/InsertaActividadEntrega`: Registra la entrega final de la actividad.
+- `POST Actividad/ModificarEntrega`: Modifica una entrega ya enviada previamente.
+- `PUT actividad/eliminaArchivoEntrega`: Quita un archivo adjunto de la entrega.
+- `POST actividad/descargaEntregaArchivo`: Descarga los archivos entregados por el estudiante.
 
 ---
 
@@ -240,3 +253,4 @@ Se intentó en sesión 2026-10-28 para manejar insets del notch — causó panta
 | 2026-11-03 | Implementada credencial de estudiante en perfil con foto real y acciones | `ProfileFragment.kt`, `fragment_profile.xml` |
 | 2026-11-03 | Actualizados endpoints `Global/NotificacionesUsuario` y `Usuario/getUsuario` | `EminusApiClient.kt`, `UserProfile.kt`, `NotificationSummary.kt` |
 | 2026-11-03 | Corregido endpoint de actividades: `Actividad/getActividadesEstudiante` (resuelve HTTP 400) | `EminusApiClient.kt`, `Activity.kt`, `ActivityAdapter.kt`, `Constants.kt` |
+| 2026-11-03 | Implementada pantalla de detalle de actividad (`ActivityDetailActivity`) con HTML, adjuntos y selector | `ActivityDetailActivity.kt`, `activity_detail.xml`, `ActivityAttachment.kt` |

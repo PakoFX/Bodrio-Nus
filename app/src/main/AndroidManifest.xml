@@ -56,6 +56,13 @@
             android:parentActivityName=".ui.main.MainActivity"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
 
+        <!-- Pantalla de detalle de actividad, instrucciones y entrega -->
+        <activity
+            android:name=".ui.courses.ActivityDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.courses.CourseDetailActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
         <!-- Pantalla de Login auxiliar en WebView -->
         <activity
             android:name=".ui.auth.LoginWebViewActivity"

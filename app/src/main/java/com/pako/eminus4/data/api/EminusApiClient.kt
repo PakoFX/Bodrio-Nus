@@ -146,6 +146,47 @@ class EminusApiClient(private val sessionManager: SessionManager) {
     }
 
     /**
+     * Obtiene los detalles completos de una actividad para el estudiante (instrucciones, fechas, ponderación, adjuntos).
+     */
+    fun getActivityDetail(idCurso: Long, idActividad: Long, onResult: (Result<com.pako.eminus4.data.model.ActivityDetail>) -> Unit) {
+        val url = "${Constants.API_GLOBAL_URL}Actividad/getActividadEstudiante/$idCurso/$idActividad"
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("EMINUS_API", "Error de red al consultar detalle de actividad $idActividad", e)
+                postResult(onResult, Result.failure(e))
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                try {
+                    val code = response.code
+                    val bodyString = response.body?.string() ?: ""
+
+                    if (code == 401) {
+                        postResult(onResult, Result.failure(Exception("Sesión expirada (401)")))
+                        return
+                    }
+
+                    if (!response.isSuccessful) {
+                        postResult(onResult, Result.failure(Exception("Error del servidor UV ($code)")))
+                        return
+                    }
+
+                    val detail = gson.fromJson(bodyString, com.pako.eminus4.data.model.ActivityDetail::class.java)
+                    postResult(onResult, Result.success(detail))
+                } catch (e: Exception) {
+                    Log.e("EMINUS_API", "Error parseando detalle de actividad $idActividad", e)
+                    postResult(onResult, Result.failure(e))
+                }
+            }
+        })
+    }
+
+    /**
      * Obtiene el resumen de notificaciones globales del usuario (mensajes, actividades pendientes, foros, exámenes).
      */
     fun getNotifications(onResult: (Result<NotificationSummary>) -> Unit) {
