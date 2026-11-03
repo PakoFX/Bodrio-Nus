@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- PERMISOS PARA DESCARGAS Y ARCHIVOS -->
+    <!-- PERMISOS PARA DESCARGAS Y ACTUALIZACIONES -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -25,17 +25,45 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
+        <!-- PUNTO DE ENTRADA REAL: Splash router (verifica sesión y redirige) -->
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.splash.SplashActivity"
             android:exported="true"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:theme="@style/Theme.Eminus4">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- Proveedor de archivos para abrir documentos descargados de forma segura -->
+        <!-- Pantalla principal con Bottom Navigation (Cursos, Avisos, Perfil) -->
+        <activity
+            android:name=".ui.main.MainActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
+        <!-- Pantalla legacy de cursos (no launcher) -->
+        <activity
+            android:name=".ui.courses.CoursesActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
+        <!-- Pantalla de detalle de curso con actividades -->
+        <activity
+            android:name=".ui.courses.CourseDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.main.MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
+        <!-- Pantalla de Login auxiliar en WebView -->
+        <activity
+            android:name=".ui.auth.LoginWebViewActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustPan"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
+        <!-- Proveedor de archivos para abrir documentos y APKs de forma segura -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
