@@ -6,7 +6,9 @@ data class CourseResponse(
     @SerializedName("codigo") val codigo: Int,
     @SerializedName("mensaje") val mensaje: String?,
     @SerializedName("contenido") val contenido: List<CourseContainer>?
-)
+) {
+    fun getCursos(): List<Course> = contenido?.map { it.curso } ?: emptyList()
+}
 
 data class CourseContainer(
     @SerializedName("curso") val curso: Course,

@@ -12,18 +12,23 @@ import com.pako.eminus4.data.model.Activity
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class ActivityAdapter : ListAdapter<Activity, ActivityAdapter.ActivityViewHolder>(ActivityDiffCallback()) {
+class ActivityAdapter(
+    private val onActivityClick: (Activity) -> Unit
+) : ListAdapter<Activity, ActivityAdapter.ActivityViewHolder>(ActivityDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActivityViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_activity_card, parent, false)
-        return ActivityViewHolder(view)
+        return ActivityViewHolder(view, onActivityClick)
     }
 
     override fun onBindViewHolder(holder: ActivityViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
 
-    class ActivityViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class ActivityViewHolder(
+        itemView: View,
+        private val onActivityClick: (Activity) -> Unit
+    ) : RecyclerView.ViewHolder(itemView) {
 
         private val txtEmoji: TextView  = itemView.findViewById(R.id.txtActivityEmoji)
         private val txtName: TextView   = itemView.findViewById(R.id.txtActivityName)
@@ -61,6 +66,10 @@ class ActivityAdapter : ListAdapter<Activity, ActivityAdapter.ActivityViewHolder
                     txtStatus.text = "Pendiente"
                     txtStatus.setTextColor(0xFFF59E0B.toInt())
                 }
+            }
+
+            itemView.setOnClickListener {
+                onActivityClick(activity)
             }
         }
 

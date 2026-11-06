@@ -56,7 +56,16 @@ class CoursesFragment : Fragment() {
         configurarRecyclerView()
         configurarFiltros()
         cargarDatosDeUsuario()
+        cargarCursosDesdeCache()
         cargarCursosDesdeApi()
+    }
+
+    private fun cargarCursosDesdeCache() {
+        val cached = sessionManager.getCachedCourses()
+        if (cached.isNotEmpty()) {
+            allCourses = cached
+            aplicarFiltro(soloActivos = chipFilterActivos.isChecked)
+        }
     }
 
     private fun inicializarVistas(view: View) {
@@ -74,7 +83,8 @@ class CoursesFragment : Fragment() {
         val appBarLayout = view.findViewById<View>(R.id.appBarLayout)
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(appBarLayout) { v, insets ->
             val systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
-            v.setPadding(0, systemBars.top, 0, 0)
+            val bannerVisible = (activity as? com.pako.eminus4.ui.main.MainActivity)?.isBannerVisible() == true
+            v.setPadding(0, if (bannerVisible) 0 else systemBars.top, 0, 0)
             insets
         }
 
@@ -122,8 +132,21 @@ class CoursesFragment : Fragment() {
         txtStudentCampus.text = if (perfil.userCampus.isNotBlank()) perfil.userCampus else "Universidad Veracruzana"
     }
 
+    fun recargarCursos() {
+        if (isAdded) {
+            cargarCursosDesdeApi()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (allCourses.isEmpty() && !sessionManager.isSessionExpired()) {
+            cargarCursosDesdeApi()
+        }
+    }
+
     private fun cargarCursosDesdeApi() {
-        if (!swipeRefreshLayout.isRefreshing) {
+        if (!swipeRefreshLayout.isRefreshing && allCourses.isEmpty()) {
             progressLoading.visibility = View.VISIBLE
         }
 
@@ -135,17 +158,39 @@ class CoursesFragment : Fragment() {
 
             result.onSuccess { cursos ->
                 allCourses = cursos
+                sessionManager.saveCachedCourses(cursos)
+                sessionManager.setSessionExpired(false)
+                (activity as? com.pako.eminus4.ui.main.MainActivity)?.ocultarBannerSesion()
                 aplicarFiltro(soloActivos = chipFilterActivos.isChecked)
             }.onFailure { error ->
-                if (error.message?.contains("401") == true || error.message?.contains("expirada") == true) {
-                    Toast.makeText(requireContext(), "Tu sesión ha expirado", Toast.LENGTH_LONG).show()
-                    (activity as? com.pako.eminus4.ui.main.MainActivity)?.cerrarSesionDirecta()
-                } else {
-                    Toast.makeText(requireContext(), "Error al cargar cursos: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
-                    if (allCourses.isEmpty()) {
-                        layoutEmptyState.visibility = View.VISIBLE
-                        txtEmptyMessage.text = "No se pudo conectar a Eminus\nDesliza para reintentar"
+                val esExpirada = error.message?.contains("401") == true || error.message?.contains("expirada") == true
+                if (esExpirada) {
+                    sessionManager.setSessionExpired(true)
+                }
+
+                if (allCourses.isNotEmpty()) {
+                    val mensaje = if (esExpirada) {
+                        "⚠️ Sesión caducada. Mostrando cursos guardados."
+                    } else {
+                        "Modo sin conexión. Mostrando cursos guardados."
                     }
+                    (activity as? com.pako.eminus4.ui.main.MainActivity)?.mostrarBannerSesionExpirada(mensaje)
+                    aplicarFiltro(soloActivos = chipFilterActivos.isChecked)
+                } else {
+                    val mensaje = if (esExpirada) {
+                        "⚠️ Sesión en línea caducada."
+                    } else {
+                        "Sin conexión a internet."
+                    }
+                    (activity as? com.pako.eminus4.ui.main.MainActivity)?.mostrarBannerSesionExpirada(mensaje)
+
+                    layoutEmptyState.visibility = View.VISIBLE
+                    txtEmptyMessage.text = if (esExpirada) {
+                        "Tu sesión en línea ha caducado y aún no tienes materias descargadas.\n\nToca \"Renovar\" arriba para iniciar sesión y sincronizar tus cursos."
+                    } else {
+                        "No se pudo conectar a Eminus.\nDesliza hacia abajo para reintentar."
+                    }
+                    courseAdapter.submitList(emptyList())
                 }
             }
         }

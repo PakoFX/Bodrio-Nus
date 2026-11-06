@@ -53,44 +53,44 @@ class LoginWebViewActivity : AppCompatActivity() {
         webView = findViewById(R.id.loginWebView)
 
         val isSessionExpired = intent.getBooleanExtra("SESSION_EXPIRED", false)
+        val isRenewalOnly = intent.getBooleanExtra("RENEWAL_ONLY", false)
+        val isLogout = intent.getBooleanExtra("LOGOUT_ACTION", false)
         expiredToken = intent.getStringExtra("EXPIRED_TOKEN")
 
         configurarWebView()
 
-        if (isSessionExpired) {
-            sessionManager.clearSession()
+        if (isSessionExpired || isLogout) {
+            if (!isRenewalOnly) {
+                sessionManager.clearSession(preserveCredential = true)
+            }
             limpiarSesionWebCompleta {
                 waitingForFreshLogin = true
-                Log.i("EMINUS_LOGIN", "Sesión limpiada. Esperando login fresco (token distinto al expirado).")
+                sawLoginPage = false
+                Log.i("EMINUS_LOGIN", "Sesión web limpiada (logout=$isLogout, renewal=$isRenewalOnly). Esperando login fresco.")
                 webView.loadUrl(Constants.EMINUS_LOGIN_URL)
                 iniciarSondeoContinuo()
             }
         } else {
+            waitingForFreshLogin = false
             webView.loadUrl(Constants.EMINUS_LOGIN_URL)
             iniciarSondeoContinuo()
         }
     }
 
     private fun limpiarSesionWebCompleta(onDone: () -> Unit) {
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.removeAllCookies {
-            cookieManager.flush()
+        try {
+            val cookieManager = CookieManager.getInstance()
+            cookieManager.removeAllCookies {
+                cookieManager.flush()
+            }
+            android.webkit.WebStorage.getInstance().deleteAllData()
             webView.clearCache(true)
             webView.clearHistory()
             webView.clearFormData()
-            webView.evaluateJavascript(
-                """
-                (function() {
-                    try { localStorage.clear(); } catch(e) {}
-                    try { sessionStorage.clear(); } catch(e) {}
-                    return true;
-                })();
-                """.trimIndent()
-            ) {
-                // Pequeña espera para que Angular no restaure estado a medias
-                handler.postDelayed(onDone, 150)
-            }
+        } catch (e: Exception) {
+            Log.e("EMINUS_LOGIN", "Error limpiando almacenamiento web", e)
         }
+        handler.postDelayed(onDone, 200)
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -405,15 +405,21 @@ class LoginWebViewActivity : AppCompatActivity() {
                 tokenExpiration = tokenExpiration,
                 userRoles = userRoles
             )
+            sessionManager.setSessionExpired(false)
 
             Log.i("EMINUS_LOGIN", "¡Sesión detectada y guardada con éxito para $userName!")
             Toast.makeText(this, "¡Sesión iniciada! Cargando diseño nativo…", Toast.LENGTH_SHORT).show()
 
-            val intent = Intent(this, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            val isRenewalOnly = intent.getBooleanExtra("RENEWAL_ONLY", false)
+            if (isRenewalOnly) {
+                finish()
+            } else {
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                startActivity(intent)
+                finish()
             }
-            startActivity(intent)
-            finish()
         } catch (e: Exception) {
             Log.e("EMINUS_LOGIN", "Error decodificando payload de sesión: $jsonStr", e)
             // Permitir reintentos si falló el parseo
