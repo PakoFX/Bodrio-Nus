@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/nav_prev_activity"
+        android:title="Anterior"
+        android:icon="@drawable/ic_nav_back"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/nav_next_activity"
+        android:title="Siguiente"
+        android:icon="@drawable/ic_nav_forward"
+        app:showAsAction="always" />
+
+</menu>

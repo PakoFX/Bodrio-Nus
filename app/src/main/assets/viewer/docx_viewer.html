@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta id="metaViewport" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Visor de Documento Word</title>
+    <script src="jszip.min.js"></script>
+    <script src="docx-preview.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: #1E293B;
+            font-family: -apple-system, Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+        #loading {
+            color: #38BDF8;
+            text-align: center;
+            padding: 48px 20px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        #error {
+            display: none;
+            color: #EF4444;
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 14px;
+        }
+        #container {
+            padding: 12px 8px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* ── docx-preview: conservar diseño original, solo ajustar desborde ── */
+        .docx-wrapper {
+            background-color: transparent !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
+        /* Cada "página" del Word se renderiza como una sección */
+        .docx-wrapper > section.docx {
+            background: #FFFFFF !important;
+            margin: 0 auto 14px auto !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+            border-radius: 4px !important;
+            /* NO tocamos width: docx-preview lo calcula del documento.
+               Solo evitamos que salga del viewport. */
+            max-width: 100% !important;
+            overflow-x: hidden !important;
+        }
+        /* Imágenes: que no desborden su contenedor */
+        .docx-wrapper img {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        /* Tablas anchas: scroll horizontal en lugar de cortar */
+        .docx-wrapper table {
+            display: block !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">📄 Cargando documento…</div>
+    <div id="error"></div>
+    <div id="container"></div>
+
+    <script>
+        function renderFile(fileUrl) {
+            fetch(fileUrl)
+                .then(function(res) {
+                    if (!res.ok) throw new Error("HTTP " + res.status);
+                    return res.arrayBuffer();
+                })
+                .then(function(buffer) {
+                    var container = document.getElementById("container");
+                    var loading   = document.getElementById("loading");
+
+                    return docx.renderAsync(buffer, container, null, {
+                        inWrapper: true,
+                        // false = respeta márgenes y posicionamiento del Word (conserva el diseño)
+                        ignoreWidth: false,
+                        ignoreHeight: false,
+                        breakPages: true,
+                        useBase64URL: true,
+                        renderHeaders: true,
+                        renderFooters: true,
+                        renderEndnotes: true,
+                        renderFootnotes: true
+                    }).then(function() {
+                        loading.style.display = "none";
+
+                        // ── Zoom-to-fit automático ──
+                        // Medimos la primera sección (página) del documento.
+                        // Si es más ancha que la pantalla, reducimos el viewport
+                        // para que entre completa y el usuario pueda hacer pinch-to-zoom.
+                        setTimeout(function() {
+                            var page = container.querySelector("section.docx");
+                            if (!page) return;
+                            var docWidth   = page.scrollWidth;   // ancho real del Word
+                            var screenWidth = window.screen.width;  // ancho físico en px CSS
+                            if (docWidth > screenWidth) {
+                                var scale = (screenWidth / docWidth).toFixed(3);
+                                var meta  = document.getElementById("metaViewport");
+                                meta.content = "width=" + docWidth + ", initial-scale=" + scale + ", minimum-scale=0.2, maximum-scale=5.0, user-scalable=yes";
+                            }
+                        }, 200);
+                    });
+                })
+                .catch(function(err) {
+                    document.getElementById("loading").style.display = "none";
+                    var el = document.getElementById("error");
+                    el.style.display  = "block";
+                    el.textContent    = "No se pudo renderizar el documento: " + err.message;
+                });
+        }
+    </script>
+</body>
+</html>

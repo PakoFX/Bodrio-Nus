@@ -110,9 +110,13 @@
 
                 <!-- Tarjeta: Actividades -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardActividades"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="1dp"
                     app:cardBackgroundColor="#FFFFFF">
@@ -181,9 +185,13 @@
 
                 <!-- Tarjeta: Exámenes -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardExamenes"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="1dp"
                     app:cardBackgroundColor="#FFFFFF">
@@ -252,9 +260,13 @@
 
                 <!-- Tarjeta: Foros -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardForos"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="1dp"
                     app:cardBackgroundColor="#FFFFFF">
@@ -323,10 +335,14 @@
 
                 <!-- Tarjeta: Mensajes -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardMensajeria"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:layout_marginBottom="24dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="1dp"
                     app:cardBackgroundColor="#FFFFFF">

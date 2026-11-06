@@ -1,5 +1,6 @@
 package com.pako.eminus4.ui.courses
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -133,7 +134,23 @@ class CourseDetailActivity : AppCompatActivity() {
     }
 
     private fun configurarRecyclerView() {
-        activityAdapter = ActivityAdapter()
+        activityAdapter = ActivityAdapter { actividad ->
+            val actividades = activityAdapter.currentList
+            val index = actividades.indexOfFirst { it.idActividad == actividad.idActividad }
+            val ids    = actividades.map { it.idActividad }.toLongArray()
+            val titles = actividades.map { it.nombre }.toTypedArray()
+
+            val intent = Intent(this, ActivityDetailActivity::class.java).apply {
+                putExtra(ActivityDetailActivity.EXTRA_COURSE_ID, intent.getLongExtra(EXTRA_COURSE_ID, 0L))
+                putExtra(ActivityDetailActivity.EXTRA_COURSE_NAME, intent.getStringExtra(EXTRA_COURSE_NAME) ?: "Curso")
+                putExtra(ActivityDetailActivity.EXTRA_ACTIVITY_ID, actividad.idActividad)
+                putExtra(ActivityDetailActivity.EXTRA_ACTIVITY_TITLE, actividad.nombre)
+                putExtra(ActivityDetailActivity.EXTRA_ACTIVITY_IDS, ids)
+                putExtra(ActivityDetailActivity.EXTRA_ACTIVITY_TITLES, titles)
+                putExtra(ActivityDetailActivity.EXTRA_ACTIVITY_INDEX, if (index >= 0) index else 0)
+            }
+            startActivity(intent)
+        }
         rvActivities.layoutManager = LinearLayoutManager(this)
         rvActivities.adapter = activityAdapter
 

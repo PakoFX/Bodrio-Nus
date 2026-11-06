@@ -32,7 +32,7 @@ class SplashActivity : AppCompatActivity() {
 
     private fun redirigir() {
         val sessionManager = SessionManager(this)
-        val destino = if (sessionManager.isLoggedIn()) {
+        val destino = if (sessionManager.hasSession()) {
             Intent(this, MainActivity::class.java)
         } else {
             Intent(this, LoginWebViewActivity::class.java)
