@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
+    <title>Visor de Presentación PowerPoint</title>
+    <script src="jszip.min.js"></script>
+    <script src="chart.umd.min.js"></script>
+    <script src="PptxViewJS.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0F172A;
+            font-family: -apple-system, Roboto, Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #loading {
+            color: #38BDF8;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            padding: 40px 24px;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #error {
+            display: none;
+            color: #EF4444;
+            font-size: 14px;
+            text-align: center;
+            padding: 40px 24px;
+        }
+        #slide-wrapper {
+            width: 100%;
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 12px 8px;
+        }
+        .canvas-container {
+            width: 100%;
+            max-width: 960px;
+            background: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #slideCanvas {
+            width: 100% !important;
+            height: auto !important;
+            display: block;
+        }
+        .nav-bar {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 8px 18px;
+            border-radius: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+            border: 1px solid #334155;
+            margin-bottom: 16px;
+        }
+        .nav-btn {
+            background: #00897B;
+            color: #FFFFFF;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .counter {
+            color: #F8FAFC;
+            font-size: 13px;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">📙 Cargando presentación…</div>
+    <div id="error"></div>
+
+    <div id="slide-wrapper">
+        <div class="canvas-container">
+            <canvas id="slideCanvas"></canvas>
+        </div>
+        <div class="nav-bar">
+            <button id="btnPrev" class="nav-btn" onclick="prevSlide()" disabled>◀ Ant</button>
+            <span id="txtCounter" class="counter">1 / 1</span>
+            <button id="btnNext" class="nav-btn" onclick="nextSlide()">Sig ▶</button>
+        </div>
+    </div>
+
+    <script>
+        var pptxViewer  = null;
+        var totalSlides = 1;
+        var currentSlide = 0;
+
+        // FileViewerActivity llama window.renderFile(url) después de que la página cargó.
+        async function renderFile(fileUrl) {
+            try {
+                var res = await fetch(fileUrl);
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                var buffer = await res.arrayBuffer();
+
+                var canvas  = document.getElementById("slideCanvas");
+                var loading = document.getElementById("loading");
+                var wrapper = document.getElementById("slide-wrapper");
+
+                var ViewerClass = (window.PptxViewJS && window.PptxViewJS.PPTXViewer)
+                    ? window.PptxViewJS.PPTXViewer
+                    : window.PPTXViewer;
+
+                if (!ViewerClass) throw new Error("PptxViewJS no se inicializó.");
+
+                pptxViewer = new ViewerClass({
+                    canvas: canvas,
+                    slideSizeMode: "fit",
+                    backgroundColor: "#FFFFFF"
+                });
+
+                await pptxViewer.loadFile(buffer);
+
+                totalSlides  = pptxViewer.slideCount || 1;
+                currentSlide = 0;
+
+                loading.style.display    = "none";
+                wrapper.style.display    = "flex";
+
+                updateControls();
+                setupSwipe();
+            } catch (err) {
+                document.getElementById("loading").style.display = "none";
+                var el = document.getElementById("error");
+                el.style.display  = "block";
+                el.textContent    = "Error al renderizar presentación: " + err.message;
+            }
+        }
+
+        async function nextSlide() {
+            if (!pptxViewer || currentSlide >= totalSlides - 1) return;
+            currentSlide++;
+            await pptxViewer.renderSlide(currentSlide);
+            updateControls();
+        }
+
+        async function prevSlide() {
+            if (!pptxViewer || currentSlide <= 0) return;
+            currentSlide--;
+            await pptxViewer.renderSlide(currentSlide);
+            updateControls();
+        }
+
+        function updateControls() {
+            document.getElementById("txtCounter").textContent =
+                (currentSlide + 1) + " / " + totalSlides;
+            document.getElementById("btnPrev").disabled = (currentSlide <= 0);
+            document.getElementById("btnNext").disabled = (currentSlide >= totalSlides - 1);
+        }
+
+        function setupSwipe() {
+            var startX = 0;
+            var wrapper = document.getElementById("slide-wrapper");
+            wrapper.addEventListener("touchstart", function(e) {
+                startX = e.changedTouches[0].screenX;
+            }, { passive: true });
+            wrapper.addEventListener("touchend", function(e) {
+                var dx = e.changedTouches[0].screenX - startX;
+                if (dx < -50) nextSlide();
+                else if (dx > 50) prevSlide();
+            }, { passive: true });
+        }
+    </script>
+</body>
+</html>

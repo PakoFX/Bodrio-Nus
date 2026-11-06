@@ -23,4 +23,21 @@ data class ActivityDetail(
 
     val estaCalificada: Boolean
         get() = calificacion != null
+
+    val estaCerrada: Boolean
+        get() {
+            if (calificacion != null) return true
+            if (estado == 2 || estado == 3 || estadoEntrega == 2 || estadoEntrega == 3) return true
+            fechaTermino?.let { iso ->
+                try {
+                    val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+                    val limit = sdf.parse(iso.substring(0, 19))
+                    if (limit != null && limit.before(java.util.Date())) {
+                        return true
+                    }
+                } catch (_: Exception) {}
+            }
+            return false
+        }
 }
+

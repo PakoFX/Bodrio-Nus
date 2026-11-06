@@ -63,6 +63,44 @@
             android:parentActivityName=".ui.courses.CourseDetailActivity"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
 
+        <!-- Visor de documentos en línea (PDF, Imágenes, Office) -->
+        <activity
+            android:name=".ui.viewer.FileViewerActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
+        <!-- Módulos de Avisos y Notificaciones -->
+        <activity
+            android:name=".ui.messages.MessagesActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
+        <activity
+            android:name=".ui.messages.MessageDetailActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
+        <activity
+            android:name=".ui.courses.AllActivitiesActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
+        <activity
+            android:name=".ui.exams.ExamsActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
+        <activity
+            android:name=".ui.forums.ForumsActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
+        <!-- Credencial Digital UV a Pantalla Completa (Offline y Brillo Máximo) -->
+        <activity
+            android:name=".ui.profile.CredentialFullscreenActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
         <!-- Pantalla de Login auxiliar en WebView -->
         <activity
             android:name=".ui.auth.LoginWebViewActivity"

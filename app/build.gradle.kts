@@ -10,8 +10,8 @@ android {
         applicationId = "com.pako.eminus4"
         minSdk = 24
         targetSdk = 35
-        versionCode = 5
-        versionName = "2.0.0"
+        versionCode = 11
+        versionName = "2.4.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -57,6 +57,12 @@ dependencies {
 
     // Carga de imágenes nativa y eficiente
     implementation(libs.coil)
+
+    // WebViewAssetLoader para servir archivos locales al WebView
+    implementation(libs.androidx.webkit)
+
+    // Generación offline de códigos QR y códigos de barras (Credencial)
+    implementation("com.google.zxing:core:3.5.3")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)

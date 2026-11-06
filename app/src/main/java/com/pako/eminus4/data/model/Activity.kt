@@ -32,6 +32,12 @@ data class Activity(
     val entregada: Boolean
         get() = estadoEntrega == 2 || estadoEntrega == 3 || estado == 2 || estado == 3 || calificacion != null
 
+    val estaEntregada: Boolean
+        get() = entregada
+
+    val estaCalificada: Boolean
+        get() = calificacion != null
+
     val fechaLimite: String?
         get() = fechaTermino ?: fechaEntrega
 
