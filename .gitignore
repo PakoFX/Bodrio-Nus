@@ -15,3 +15,5 @@ app/build/
 bodrio_b64.txt
 screen_*.png
 *.apk
+
+*.py

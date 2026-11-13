@@ -14,6 +14,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.core.content.ContextCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.tabs.TabLayout
 import com.pako.eminus4.R
@@ -72,7 +73,7 @@ class MessagesActivity : AppCompatActivity() {
         txtEmptyTitle = findViewById(R.id.txtEmptyTitle)
         txtEmptySubtitle = findViewById(R.id.txtEmptySubtitle)
 
-        swipeRefresh.setColorSchemeColors(Color.parseColor("#00897B"))
+        swipeRefresh.setColorSchemeColors(ContextCompat.getColor(this, R.color.brand_uv_green))
         swipeRefresh.setOnRefreshListener {
             cargarMensajes()
         }

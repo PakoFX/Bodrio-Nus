@@ -1,14 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="12dp"
     android:layout_marginVertical="5dp"
-    app:cardBackgroundColor="#FFFFFF"
+    app:cardBackgroundColor="@color/bg_card"
     app:cardCornerRadius="12dp"
     app:cardElevation="0.5dp"
-    app:strokeColor="#E2E8F0"
+    app:strokeColor="@color/border_subtle"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -31,7 +31,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="Nombre del Curso"
-                android:textColor="#00897B"
+                android:textColor="@color/brand_uv_green"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -58,7 +58,7 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:text="Título del Foro de Discusión"
-            android:textColor="#0F172A"
+            android:textColor="@color/text_primary"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -70,7 +70,7 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:text="Descripción o consigna del foro..."
-            android:textColor="#64748B"
+            android:textColor="@color/text_secondary"
             android:textSize="13sp" />
 
         <LinearLayout
@@ -86,7 +86,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="💬 14 comentarios"
-                android:textColor="#64748B"
+                android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
 
             <TextView
@@ -95,7 +95,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:text="10 pts"
-                android:textColor="#0F172A"
+                android:textColor="@color/text_primary"
                 android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>

@@ -1,14 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="10dp"
-    app:cardBackgroundColor="#F8FAFC"
+    app:cardBackgroundColor="@color/bg_subtle"
     app:cardCornerRadius="14dp"
     app:cardElevation="0dp"
-    app:strokeColor="#E2E8F0"
+    app:strokeColor="@color/border_subtle"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -46,7 +46,7 @@
                     android:layout_height="wrap_content"
                     android:ellipsize="middle"
                     android:maxLines="2"
-                    android:textColor="#0F172A"
+                    android:textColor="@color/text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     tools:text="Presentacion_Proyecto.pdf" />
@@ -56,7 +56,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:textColor="#64748B"
+                    android:textColor="@color/text_secondary"
                     android:textSize="12sp"
                     tools:text="518 KB · Recurso de actividad" />
             </LinearLayout>
@@ -67,7 +67,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginVertical="10dp"
-            android:background="#E2E8F0" />
+            android:background="@color/border_subtle" />
 
         <!-- Fila inferior: Acciones Ver en Línea y Descargar -->
         <LinearLayout
@@ -85,12 +85,12 @@
                 android:backgroundTint="#E0F2FE"
                 android:paddingHorizontal="14dp"
                 android:text="Ver en línea"
-                android:textColor="#0284C7"
+                android:textColor="@color/brand_uv_blue"
                 android:textSize="12sp"
                 app:cornerRadius="10dp"
                 app:icon="@drawable/ic_visibility"
                 app:iconSize="16dp"
-                app:iconTint="#0284C7" />
+                app:iconTint="@color/brand_uv_blue" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDownload"
@@ -99,13 +99,13 @@
                 android:layout_height="38dp"
                 android:paddingHorizontal="14dp"
                 android:text="Descargar"
-                android:textColor="#00897B"
+                android:textColor="@color/brand_uv_green"
                 android:textSize="12sp"
                 app:cornerRadius="10dp"
                 app:icon="@drawable/ic_file_download"
                 app:iconSize="16dp"
-                app:iconTint="#00897B"
-                app:strokeColor="#00897B" />
+                app:iconTint="@color/brand_uv_green"
+                app:strokeColor="@color/brand_uv_green" />
         </LinearLayout>
 
     </LinearLayout>

@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#EEF2F6">
+    android:background="@color/bg_screen">
 
     <!-- AppBar colapsable con el color temático del curso -->
     <com.google.android.material.appbar.AppBarLayout
@@ -36,7 +36,7 @@
                     android:id="@+id/detailHeaderBg"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="#00897B" />
+                    android:background="@color/brand_uv_green" />
 
                 <!-- Imagen del curso (si tiene thumbnail) -->
                 <ImageView
@@ -60,7 +60,7 @@
                 android:layout_height="?attr/actionBarSize"
                 app:layout_collapseMode="pin"
                 app:navigationIcon="@drawable/ic_nav_back"
-                app:navigationIconTint="#FFFFFF" />
+                app:navigationIconTint="@color/bg_card" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
@@ -72,7 +72,7 @@
             android:orientation="horizontal"
             android:paddingHorizontal="12dp"
             android:paddingVertical="6dp"
-            android:background="#FFFFFF">
+            android:background="@color/bg_card">
 
             <TextView
                 android:id="@+id/statActividades"
@@ -81,7 +81,7 @@
                 android:text="📝 0 Act."
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#0F172A"
+                android:textColor="@color/text_primary"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="5dp"
                 android:background="@drawable/bg_stat_pill" />
@@ -93,7 +93,7 @@
                 android:layout_marginStart="6dp"
                 android:text="💬 0 Foros"
                 android:textSize="12sp"
-                android:textColor="#1E293B"
+                android:textColor="@color/text_title"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="5dp"
                 android:background="@drawable/bg_stat_pill" />
@@ -105,7 +105,7 @@
                 android:layout_marginStart="6dp"
                 android:text="👥 0"
                 android:textSize="12sp"
-                android:textColor="#64748B"
+                android:textColor="@color/text_secondary"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="5dp"
                 android:background="@drawable/bg_stat_pill" />
@@ -162,7 +162,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:text="No hay actividades registradas"
-                    android:textColor="#64748B"
+                    android:textColor="@color/text_secondary"
                     android:textSize="15sp"
                     android:textStyle="bold"
                     android:gravity="center" />

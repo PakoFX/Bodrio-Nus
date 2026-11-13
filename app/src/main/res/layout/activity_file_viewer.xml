@@ -1,16 +1,16 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0F172A">
+    android:background="@color/text_primary">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#1E293B"
+        android:background="@color/text_title"
         app:elevation="4dp">
 
         <com.google.android.material.appbar.MaterialToolbar
@@ -18,10 +18,10 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_nav_back"
-            app:navigationIconTint="#FFFFFF"
+            app:navigationIconTint="@color/bg_card"
             app:title="Visor de Documento"
-            app:titleTextColor="#FFFFFF"
-            app:subtitleTextColor="#94A3B8" />
+            app:titleTextColor="@color/bg_card"
+            app:subtitleTextColor="@color/text_tertiary" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -30,7 +30,7 @@
         android:id="@+id/containerContent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#0F172A"
+        android:background="@color/text_primary"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <!-- Estado de Carga -->
@@ -54,7 +54,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Descargando recurso para visualización en línea…"
-                android:textColor="#E2E8F0"
+                android:textColor="@color/border_subtle"
                 android:textSize="14sp" />
         </LinearLayout>
 
@@ -84,7 +84,7 @@
                 android:backgroundTint="#80000000"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="6dp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/bg_card"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 tools:text="Páginas: 4" />
@@ -120,7 +120,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="monospace"
                 android:lineSpacingExtra="4dp"
-                android:textColor="#E2E8F0"
+                android:textColor="@color/border_subtle"
                 android:textSize="13sp" />
         </androidx.core.widget.NestedScrollView>
 
@@ -129,7 +129,7 @@
             android:id="@+id/webOfficeViewer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#0F172A"
+            android:background="@color/text_primary"
             android:visibility="gone" />
 
         <!-- Visor Office Fallback (ZIP, RAR, etc.) -->
@@ -145,10 +145,10 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="#1E293B"
+                app:cardBackgroundColor="@color/text_title"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="2dp"
-                app:strokeColor="#334155"
+                app:strokeColor="@color/text_body"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -163,7 +163,7 @@
                         android:layout_width="72dp"
                         android:layout_height="72dp"
                         android:background="@drawable/bg_stat_pill"
-                        android:backgroundTint="#334155"
+                        android:backgroundTint="@color/text_body"
                         android:gravity="center"
                         android:textSize="36sp"
                         tools:text="📙" />
@@ -174,7 +174,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:gravity="center"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/bg_card"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         tools:text="Presentacion_Proyecto.pptx" />
@@ -184,7 +184,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:textColor="#94A3B8"
+                        android:textColor="@color/text_tertiary"
                         android:textSize="13sp"
                         tools:text="210 KB · Presentación de PowerPoint" />
 
@@ -194,7 +194,7 @@
                         android:layout_marginTop="16dp"
                         android:gravity="center"
                         android:text="Este archivo se descargó de forma segura en la memoria de la aplicación. Puedes abrirlo con cualquier lector de Office instalado en tu teléfono o guardarlo en tus descargas."
-                        android:textColor="#CBD5E1"
+                        android:textColor="@color/border_card"
                         android:textSize="13sp" />
 
                     <com.google.android.material.button.MaterialButton
@@ -203,13 +203,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:layout_marginTop="20dp"
-                        android:backgroundTint="#00897B"
+                        android:backgroundTint="@color/brand_uv_green"
                         android:text="Abrir con visor de Office"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/bg_card"
                         app:cornerRadius="12dp"
                         app:icon="@drawable/ic_open_in_new"
                         app:iconGravity="textStart"
-                        app:iconTint="#FFFFFF" />
+                        app:iconTint="@color/bg_card" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSaveOfficeCopy"
@@ -263,7 +263,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Reintentar"
-                android:textColor="#FFFFFF" />
+                android:textColor="@color/bg_card" />
         </LinearLayout>
 
     </FrameLayout>

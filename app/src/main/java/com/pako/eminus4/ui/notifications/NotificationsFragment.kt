@@ -8,6 +8,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.core.content.ContextCompat
 import com.google.android.material.card.MaterialCardView
 import com.pako.eminus4.R
 import com.pako.eminus4.core.SessionManager
@@ -235,12 +236,12 @@ class NotificationsFragment : Fragment() {
             } else {
                 "Revisa tus evaluaciones o mensajes sin leer."
             }
-            cardStatusBanner.strokeColor = android.graphics.Color.parseColor("#38BDF8")
+            cardStatusBanner.strokeColor = ContextCompat.getColor(requireContext(), R.color.stroke_alert)
         } else {
             txtStatusEmoji.text = "✨"
             txtStatusTitle.text = "Al corriente"
             txtStatusDesc.text = "No tienes avisos urgentes sin revisar en tus cursos."
-            cardStatusBanner.strokeColor = android.graphics.Color.parseColor("#CBD5E1")
+            cardStatusBanner.strokeColor = ContextCompat.getColor(requireContext(), R.color.stroke_ok)
         }
 
         // Actividades
@@ -286,12 +287,12 @@ class NotificationsFragment : Fragment() {
             txtStatusEmoji.text = "⚡"
             txtStatusTitle.text = "$totalAlertas pendiente${if (totalAlertas > 1) "s" else ""} por atender"
             txtStatusDesc.text = "Revisa los entregables y evaluaciones activas a continuación."
-            cardStatusBanner.strokeColor = android.graphics.Color.parseColor("#38BDF8")
+            cardStatusBanner.strokeColor = ContextCompat.getColor(requireContext(), R.color.stroke_alert)
         } else {
             txtStatusEmoji.text = "✨"
             txtStatusTitle.text = "Al corriente"
             txtStatusDesc.text = "No tienes avisos urgentes sin revisar en tus cursos."
-            cardStatusBanner.strokeColor = android.graphics.Color.parseColor("#CBD5E1")
+            cardStatusBanner.strokeColor = ContextCompat.getColor(requireContext(), R.color.stroke_ok)
         }
 
         // Actividades
