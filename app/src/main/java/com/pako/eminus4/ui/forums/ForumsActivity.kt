@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.core.content.ContextCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -77,7 +78,7 @@ class ForumsActivity : AppCompatActivity() {
         recyclerForums = findViewById(R.id.recyclerForums)
         layoutEmpty = findViewById(R.id.layoutEmpty)
 
-        swipeRefresh.setColorSchemeColors(Color.parseColor("#00897B"))
+        swipeRefresh.setColorSchemeColors(ContextCompat.getColor(this, R.color.brand_uv_green))
         swipeRefresh.setOnRefreshListener {
             cargarForos()
         }
@@ -205,10 +206,10 @@ class ForumsAdapter(
             val cal = item.calificacion
             if (cal != null) {
                 txtPoints.text = "Calificación: ${"%.1f".format(cal)}"
-                txtPoints.setTextColor(Color.parseColor("#16A34A"))
+                txtPoints.setTextColor(ContextCompat.getColor(itemView.context, R.color.badge_success_text))
             } else {
                 txtPoints.text = "${"%.0f".format(valor)} pts"
-                txtPoints.setTextColor(Color.parseColor("#0F172A"))
+                txtPoints.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_primary))
             }
 
             if (item.nuevosComentarios > 0) {

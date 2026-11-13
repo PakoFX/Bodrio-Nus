@@ -27,6 +27,7 @@ import androidx.core.text.HtmlCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.core.content.ContextCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -193,7 +194,7 @@ class ActivityDetailActivity : AppCompatActivity() {
         txtActivityTitle.text  = activityTitleText
         txtCourseSubtitle.text = courseName
 
-        swipeRefresh.setColorSchemeColors(Color.parseColor("#00897B"))
+        swipeRefresh.setColorSchemeColors(ContextCompat.getColor(this, R.color.brand_uv_green))
         swipeRefresh.setOnRefreshListener {
             cargarDetalleActividad()
         }
@@ -293,17 +294,17 @@ class ActivityDetailActivity : AppCompatActivity() {
         if (cal != null) {
             badgeStatus.text = "Calificada (${"%.1f".format(cal)}/${"%.0f".format(valor)})"
             badgeStatus.setBackgroundResource(R.drawable.bg_pill_active)
-            badgeStatus.setTextColor(Color.parseColor("#16A34A"))
+            badgeStatus.setTextColor(ContextCompat.getColor(this, R.color.badge_success_text))
             txtScoreValue.text = "Calificación: ${"%.1f".format(cal)}"
         } else if (detail.estaEntregada) {
             badgeStatus.text = "Entregada"
             badgeStatus.setBackgroundResource(R.drawable.bg_pill_badge)
-            badgeStatus.setTextColor(Color.parseColor("#0284C7"))
+            badgeStatus.setTextColor(ContextCompat.getColor(this, R.color.badge_info_text))
             txtScoreValue.text = "Valor: ${"%.0f".format(valor)} pts"
         } else {
             badgeStatus.text = "Pendiente"
             badgeStatus.setBackgroundResource(R.drawable.bg_pill_closed)
-            badgeStatus.setTextColor(Color.parseColor("#F59E0B"))
+            badgeStatus.setTextColor(ContextCompat.getColor(this, R.color.badge_warning_text))
             txtScoreValue.text = "Valor: ${"%.0f".format(valor)} pts"
         }
 
@@ -347,11 +348,11 @@ class ActivityDetailActivity : AppCompatActivity() {
             if (detail.estaCalificada) {
                 txtClosedTitle.text = "Actividad Calificada"
                 txtClosedReason.text = "Esta actividad ya fue evaluada (${"%.1f".format(detail.calificacion)}/${"%.0f".format(valor)} pts). No se admiten modificaciones."
-                txtClosedTitle.setTextColor(Color.parseColor("#16A34A"))
+                txtClosedTitle.setTextColor(ContextCompat.getColor(this, R.color.badge_success_text))
             } else {
                 txtClosedTitle.text = "Actividad Cerrada"
                 txtClosedReason.text = "La fecha límite concluyó el ${formatearFechaIso(detail.fechaTermino)}. No se admiten nuevas entregas."
-                txtClosedTitle.setTextColor(Color.parseColor("#EF4444"))
+                txtClosedTitle.setTextColor(ContextCompat.getColor(this, R.color.badge_error_text))
             }
         } else {
             layoutClosedNotice.visibility = View.GONE

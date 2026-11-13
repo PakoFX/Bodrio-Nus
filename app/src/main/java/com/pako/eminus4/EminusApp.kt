@@ -1,8 +1,9 @@
-﻿package com.pako.eminus4
+package com.pako.eminus4
 
 import android.app.Application
 import android.os.Build
 import android.webkit.WebView
+import androidx.appcompat.app.AppCompatDelegate
 import coil.Coil
 import coil.ImageLoader
 import com.pako.eminus4.core.SessionManager
@@ -11,13 +12,22 @@ import okhttp3.OkHttpClient
 class EminusApp : Application() {
     override fun onCreate() {
         super.onCreate()
+
+        // Aplicar preferencia de tema ANTES de que se creen las Activities
+        val sessionManager = SessionManager(this)
+        val nightMode = if (sessionManager.isDarkModeEnabled()) {
+            AppCompatDelegate.MODE_NIGHT_YES
+        } else {
+            AppCompatDelegate.MODE_NIGHT_NO
+        }
+        AppCompatDelegate.setDefaultNightMode(nightMode)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             WebView.setDataDirectorySuffix("visor_popup")
         }
 
         // Configura Coil con un OkHttpClient que inyecta el Bearer token
         // en cada petición de imagen (los thumbnails requieren autenticación)
-        val sessionManager = SessionManager(this)
         val coilClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val token = sessionManager.getAccessToken()

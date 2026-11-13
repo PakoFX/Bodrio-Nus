@@ -1,7 +1,12 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Dark theme overrides -->
     <style name="Base.Theme.Eminus4" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="colorPrimary">@color/brand_uv_green</item>
+        <item name="colorSecondary">#4ADE80</item>
+        <item name="android:statusBarColor">@color/status_bar_color</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">@color/bg_screen</item>
+        <item name="colorSurface">@color/bg_surface</item>
+        <item name="colorSurfaceContainer">@color/bg_card</item>
     </style>
 </resources>

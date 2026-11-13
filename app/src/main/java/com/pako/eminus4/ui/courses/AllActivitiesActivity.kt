@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.core.content.ContextCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.chip.ChipGroup
 import com.pako.eminus4.R
@@ -77,7 +78,7 @@ class AllActivitiesActivity : AppCompatActivity() {
         recyclerActivities = findViewById(R.id.recyclerActivities)
         layoutEmpty = findViewById(R.id.layoutEmpty)
 
-        swipeRefresh.setColorSchemeColors(Color.parseColor("#00897B"))
+        swipeRefresh.setColorSchemeColors(ContextCompat.getColor(this, R.color.brand_uv_green))
         swipeRefresh.setOnRefreshListener {
             cargarTodasLasActividades()
         }
@@ -192,7 +193,7 @@ class AllActivitiesAdapter(
             try {
                 txtCourseBadge.setTextColor(Color.parseColor(item.courseColor))
             } catch (_: Exception) {
-                txtCourseBadge.setTextColor(Color.parseColor("#00897B"))
+                txtCourseBadge.setTextColor(ContextCompat.getColor(itemView.context, R.color.brand_uv_green))
             }
 
             txtActivityTitle.text = act.titulo
@@ -203,17 +204,17 @@ class AllActivitiesAdapter(
             if (cal != null) {
                 badgeStatus.text = "Calificada (${"%.1f".format(cal)})"
                 badgeStatus.setBackgroundResource(R.drawable.bg_pill_active)
-                badgeStatus.setTextColor(Color.parseColor("#16A34A"))
+                badgeStatus.setTextColor(ContextCompat.getColor(itemView.context, R.color.badge_success_text))
                 txtPoints.text = "${"%.1f".format(cal)}/${"%.0f".format(valor)} pts"
             } else if (act.estaEntregada) {
                 badgeStatus.text = "Entregada"
                 badgeStatus.setBackgroundResource(R.drawable.bg_pill_badge)
-                badgeStatus.setTextColor(Color.parseColor("#0284C7"))
+                badgeStatus.setTextColor(ContextCompat.getColor(itemView.context, R.color.badge_info_text))
                 txtPoints.text = "${"%.0f".format(valor)} pts"
             } else {
                 badgeStatus.text = "Pendiente"
                 badgeStatus.setBackgroundResource(R.drawable.bg_pill_closed)
-                badgeStatus.setTextColor(Color.parseColor("#F59E0B"))
+                badgeStatus.setTextColor(ContextCompat.getColor(itemView.context, R.color.badge_warning_text))
                 txtPoints.text = "${"%.0f".format(valor)} pts"
             }
 

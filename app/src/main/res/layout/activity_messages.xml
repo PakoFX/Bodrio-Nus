@@ -1,15 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8FAFC">
+    android:background="@color/bg_subtle">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="@color/bg_card"
         app:elevation="2dp">
 
         <com.google.android.material.appbar.MaterialToolbar
@@ -18,18 +18,18 @@
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/abc_ic_ab_back_material"
             app:title="Mensajería"
-            app:titleTextColor="#0F172A" />
+            app:titleTextColor="@color/text_primary" />
 
         <!-- Selector de carpeta (Bandeja / Enviados) -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabFolders"
             android:layout_width="match_parent"
             android:layout_height="44dp"
-            android:background="#FFFFFF"
-            app:tabIndicatorColor="#00897B"
+            android:background="@color/bg_card"
+            app:tabIndicatorColor="@color/brand_uv_green"
             app:tabIndicatorHeight="3dp"
-            app:tabSelectedTextColor="#00897B"
-            app:tabTextColor="#64748B">
+            app:tabSelectedTextColor="@color/brand_uv_green"
+            app:tabTextColor="@color/text_secondary">
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
@@ -81,7 +81,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="No hay mensajes"
-                    android:textColor="#1E293B"
+                    android:textColor="@color/text_title"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
@@ -92,7 +92,7 @@
                     android:layout_marginTop="6dp"
                     android:gravity="center"
                     android:text="Tu bandeja de entrada está vacía por el momento."
-                    android:textColor="#64748B"
+                    android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
             </LinearLayout>
         </FrameLayout>

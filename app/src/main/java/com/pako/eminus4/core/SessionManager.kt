@@ -20,6 +20,7 @@ class SessionManager(context: Context) {
         private const val KEY_STUDENT_CREDENTIAL = "key_student_credential_json"
         private const val KEY_CACHED_COURSES = "key_cached_courses_json"
         private const val KEY_SESSION_EXPIRED = "key_session_expired"
+        const val KEY_DARK_MODE = "key_dark_mode_enabled"
     }
 
     fun saveSession(
@@ -128,9 +129,18 @@ class SessionManager(context: Context) {
      */
     fun clearSession(preserveCredential: Boolean = true) {
         val savedCredential = if (preserveCredential) getStudentCredential() else null
+        val darkMode = isDarkModeEnabled()
         prefs.edit().clear().apply()
         if (savedCredential != null) {
             saveStudentCredential(savedCredential)
         }
+        // Preservar también la preferencia de tema
+        setDarkModeEnabled(darkMode)
+    }
+
+    fun isDarkModeEnabled(): Boolean = prefs.getBoolean(KEY_DARK_MODE, false)
+
+    fun setDarkModeEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_DARK_MODE, enabled).apply()
     }
 }

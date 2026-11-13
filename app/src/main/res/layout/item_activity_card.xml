@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -9,8 +9,8 @@
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
     app:strokeWidth="1dp"
-    app:strokeColor="#E2E8F0"
-    app:cardBackgroundColor="#FFFFFF"
+    app:strokeColor="@color/border_subtle"
+    app:cardBackgroundColor="@color/bg_card"
     android:clickable="true"
     android:focusable="true">
 
@@ -44,7 +44,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Nombre de la actividad"
-                android:textColor="#0F172A"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:maxLines="2"
@@ -56,7 +56,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="Sin fecha"
-                android:textColor="#94A3B8"
+                android:textColor="@color/text_tertiary"
                 android:textSize="11sp" />
 
         </LinearLayout>
@@ -74,7 +74,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="—"
-                android:textColor="#64748B"
+                android:textColor="@color/text_secondary"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:gravity="center" />

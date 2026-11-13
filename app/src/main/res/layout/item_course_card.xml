@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -8,8 +8,8 @@
     app:cardCornerRadius="16dp"
     app:cardElevation="3dp"
     app:strokeWidth="1dp"
-    app:strokeColor="#E2E8F0"
-    app:cardBackgroundColor="#FFFFFF"
+    app:strokeColor="@color/border_subtle"
+    app:cardBackgroundColor="@color/bg_card"
     android:clickable="true"
     android:focusable="true">
 
@@ -23,7 +23,7 @@
             android:id="@+id/cardHeaderBanner"
             android:layout_width="match_parent"
             android:layout_height="64dp"
-            android:background="#00897B">
+            android:background="@color/brand_uv_green">
 
             <ImageView
                 android:id="@+id/imgCourseThumbnail"
@@ -47,7 +47,7 @@
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="3dp"
                 android:text="NORMAL"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/bg_card"
                 android:textSize="10sp"
                 android:textStyle="bold" />
         </FrameLayout>
@@ -64,7 +64,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="ADMINISTRACIÓN DE PROYECTOS DE (11986)"
-                android:textColor="#0F172A"
+                android:textColor="@color/text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:lineSpacingExtra="2dp" />
@@ -75,7 +75,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="FACULTAD DE CONTADURÍA Y ADMINISTRACIÓN"
-                android:textColor="#64748B"
+                android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
 
             <!-- Píldoras de contadores de actividades, foros y exámenes -->
@@ -93,7 +93,7 @@
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="4dp"
                     android:text="📝 27 Actividades"
-                    android:textColor="#1E293B"
+                    android:textColor="@color/text_title"
                     android:textSize="11sp"
                     android:textStyle="bold" />
 
@@ -106,7 +106,7 @@
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="4dp"
                     android:text="💬 1 Foro"
-                    android:textColor="#1E293B"
+                    android:textColor="@color/text_title"
                     android:textSize="11sp" />
 
                 <TextView
@@ -118,7 +118,7 @@
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="4dp"
                     android:text="👥 36"
-                    android:textColor="#64748B"
+                    android:textColor="@color/text_secondary"
                     android:textSize="11sp" />
             </LinearLayout>
 
