@@ -1,5 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Colores base neutros -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Marca institucional UV -->
+    <color name="brand_uv_green">#00897B</color>
+    <color name="brand_uv_green_dark">#00695C</color>
+    <color name="brand_uv_green_light">#E0F2F1</color>
+    <color name="brand_uv_blue">#0284C7</color>
+
+    <!-- Semántica de la interfaz (TEMA CLARO) -->
+    <!-- Fondos de pantalla -->
+    <color name="bg_screen">#EEF2F6</color>
+    <color name="bg_card">#FFFFFF</color>
+    <color name="bg_surface">#FFFFFF</color>
+    <color name="bg_subtle">#F8FAFC</color>
+
+    <!-- Textos -->
+    <color name="text_primary">#0F172A</color>
+    <color name="text_secondary">#64748B</color>
+    <color name="text_tertiary">#94A3B8</color>
+    <color name="text_title">#1E293B</color>
+    <color name="text_body">#334155</color>
+
+    <!-- Bordes y divisores -->
+    <color name="border_subtle">#E2E8F0</color>
+    <color name="border_card">#CBD5E1</color>
+    <color name="divider">#E2E8F0</color>
+
+    <!-- Elementos de navegación y barras -->
+    <color name="bottom_nav_bg">#FFFFFF</color>
+    <color name="bottom_nav_indicator">#E0F2F1</color>
+    <color name="status_bar_color">#FFFFFF</color>
+
+    <!-- Estado y badges -->
+    <color name="badge_active_bg">#DCFCE7</color>
+    <color name="badge_active_text">#16A34A</color>
+    <color name="badge_closed_bg">#FEF3C7</color>
+    <color name="badge_closed_text">#D97706</color>
+    <color name="badge_pill_stat_bg">#F1F5F9</color>
+
+    <!-- Colores semánticos de estado (texto en badges de estatus) -->
+    <color name="badge_success_text">#16A34A</color>
+    <color name="badge_info_text">#0284C7</color>
+    <color name="badge_warning_text">#D97706</color>
+    <color name="badge_error_text">#DC2626</color>
+    <color name="badge_neutral_text">#64748B</color>
+
+    <!-- Stroke del banner de notificaciones -->
+    <color name="stroke_alert">#38BDF8</color>
+    <color name="stroke_ok">#CBD5E1</color>
+
+    <!-- Banner offline -->
+    <color name="banner_offline_bg">#FEF3C7</color>
+    <color name="banner_offline_text">#92400E</color>
+    <color name="banner_offline_btn_bg">#FDE68A</color>
 </resources>

@@ -1,15 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8FAFC">
+    android:background="@color/bg_subtle">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="@color/bg_card"
         app:elevation="2dp">
 
         <com.google.android.material.appbar.MaterialToolbar
@@ -18,7 +18,7 @@
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/abc_ic_ab_back_material"
             app:title="Mensaje"
-            app:titleTextColor="#0F172A" />
+            app:titleTextColor="@color/text_primary" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <FrameLayout
@@ -31,7 +31,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:indeterminateTint="#00897B" />
+            android:indeterminateTint="@color/brand_uv_green" />
 
         <androidx.core.widget.NestedScrollView
             android:id="@+id/scrollContent"
@@ -50,7 +50,7 @@
                     android:id="@+id/txtSubject"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="#0F172A"
+                    android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
 
@@ -63,7 +63,7 @@
                     android:background="@drawable/bg_pill_badge"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="3dp"
-                    android:textColor="#0284C7"
+                    android:textColor="@color/brand_uv_blue"
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
@@ -72,10 +72,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    app:cardBackgroundColor="#FFFFFF"
+                    app:cardBackgroundColor="@color/bg_card"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="0.5dp"
-                    app:strokeColor="#E2E8F0"
+                    app:strokeColor="@color/border_subtle"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -104,7 +104,7 @@
                                 android:id="@+id/txtSenderName"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textColor="#0F172A"
+                                android:textColor="@color/text_primary"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
 
@@ -113,7 +113,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="1dp"
-                                android:textColor="#64748B"
+                                android:textColor="@color/text_secondary"
                                 android:textSize="12sp" />
 
                             <TextView
@@ -121,7 +121,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
-                                android:textColor="#94A3B8"
+                                android:textColor="@color/text_tertiary"
                                 android:textSize="11sp" />
                         </LinearLayout>
                     </LinearLayout>
@@ -133,7 +133,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:textColor="#64748B"
+                    android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
 
                 <!-- Separador -->
@@ -141,7 +141,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginVertical="16dp"
-                    android:background="#E2E8F0" />
+                    android:background="@color/border_subtle" />
 
                 <!-- Cuerpo del mensaje -->
                 <TextView
@@ -149,7 +149,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:lineSpacingExtra="4dp"
-                    android:textColor="#1E293B"
+                    android:textColor="@color/text_title"
                     android:textSize="15sp" />
 
                 <android.webkit.WebView
@@ -166,10 +166,10 @@
                     android:layout_marginTop="20dp"
                     android:layout_marginBottom="24dp"
                     android:visibility="gone"
-                    app:cardBackgroundColor="#FFFFFF"
+                    app:cardBackgroundColor="@color/bg_card"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="0.5dp"
-                    app:strokeColor="#CBD5E1"
+                    app:strokeColor="@color/border_card"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -182,7 +182,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="📎 Archivos Adjuntos"
-                            android:textColor="#0F172A"
+                            android:textColor="@color/text_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
 

@@ -27,6 +27,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.webkit.WebViewAssetLoader
+import androidx.core.content.ContextCompat
 import coil.load
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
@@ -143,7 +144,7 @@ class FileViewerActivity : AppCompatActivity() {
             useWideViewPort = true
             loadWithOverviewMode = true
         }
-        webOfficeViewer.setBackgroundColor(Color.parseColor("#0F172A"))
+        webOfficeViewer.setBackgroundColor(ContextCompat.getColor(this, R.color.bg_screen))
         txtOfficeEmoji        = findViewById(R.id.txtOfficeEmoji)
         txtOfficeFileName     = findViewById(R.id.txtOfficeFileName)
         txtOfficeFileInfo     = findViewById(R.id.txtOfficeFileInfo)

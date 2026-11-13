@@ -59,7 +59,7 @@ class CourseAdapter(
                 val colorHex = course.getColorHexaLimpio()
                 cardHeaderBanner.setBackgroundColor(Color.parseColor(colorHex))
             } catch (_: Exception) {
-                cardHeaderBanner.setBackgroundColor(Color.parseColor("#00897B"))
+                cardHeaderBanner.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.brand_uv_green))
             }
 
             // Thumbnail — Coil inyecta el Bearer token globalmente desde EminusApp

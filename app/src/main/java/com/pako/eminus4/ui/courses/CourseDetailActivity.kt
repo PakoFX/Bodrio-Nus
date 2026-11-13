@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.core.content.ContextCompat
 import coil.load
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.appbar.MaterialToolbar
@@ -106,19 +107,19 @@ class CourseDetailActivity : AppCompatActivity() {
             insets
         }
 
-        swipeRefresh.setColorSchemeColors(Color.parseColor("#00C853"))
+        swipeRefresh.setColorSchemeColors(ContextCompat.getColor(this, R.color.brand_uv_green))
     }
 
     private fun configurarHeader(nombre: String, colorHex: String, thumbnailUrl: String?) {
         collapsingToolbar.title = nombre
         collapsingToolbar.setContentScrimColor(
-            try { Color.parseColor(colorHex) } catch (_: Exception) { Color.parseColor("#00897B") }
+            try { Color.parseColor(colorHex) } catch (_: Exception) { ContextCompat.getColor(this, R.color.brand_uv_green) }
         )
 
         try {
             headerBg.setBackgroundColor(Color.parseColor(colorHex))
         } catch (_: Exception) {
-            headerBg.setBackgroundColor(Color.parseColor("#00897B"))
+            headerBg.setBackgroundColor(ContextCompat.getColor(this, R.color.brand_uv_green))
         }
 
         if (!thumbnailUrl.isNullOrBlank()) {

@@ -26,9 +26,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var txtBannerMessage: TextView
     private lateinit var btnBannerRenew: MaterialButton
 
-    private val coursesFragment = CoursesFragment()
-    private val notificationsFragment = NotificationsFragment()
-    private val profileFragment = ProfileFragment()
+    private var coursesFragment = CoursesFragment()
+    private var notificationsFragment = NotificationsFragment()
+    private var profileFragment = ProfileFragment()
     private var activeFragment: Fragment = coursesFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,12 +71,23 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        // Inicializar fragmentos en el contenedor
-        supportFragmentManager.beginTransaction()
-            .add(R.id.fragmentContainer, profileFragment, "profile").hide(profileFragment)
-            .add(R.id.fragmentContainer, notificationsFragment, "notifications").hide(notificationsFragment)
-            .add(R.id.fragmentContainer, coursesFragment, "courses")
-            .commit()
+        // Inicializar o restaurar fragmentos en el contenedor
+        if (savedInstanceState == null) {
+            supportFragmentManager.beginTransaction()
+                .add(R.id.fragmentContainer, profileFragment, "profile").hide(profileFragment)
+                .add(R.id.fragmentContainer, notificationsFragment, "notifications").hide(notificationsFragment)
+                .add(R.id.fragmentContainer, coursesFragment, "courses")
+                .commit()
+        } else {
+            profileFragment = supportFragmentManager.findFragmentByTag("profile") as? ProfileFragment ?: profileFragment
+            notificationsFragment = supportFragmentManager.findFragmentByTag("notifications") as? NotificationsFragment ?: notificationsFragment
+            coursesFragment = supportFragmentManager.findFragmentByTag("courses") as? CoursesFragment ?: coursesFragment
+            activeFragment = when (bottomNav.selectedItemId) {
+                R.id.nav_profile -> profileFragment
+                R.id.nav_notifications -> notificationsFragment
+                else -> coursesFragment
+            }
+        }
 
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {

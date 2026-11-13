@@ -1,15 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#EEF2F6">
+    android:background="@color/bg_screen">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="@color/bg_card"
         app:elevation="2dp">
 
         <LinearLayout
@@ -24,7 +24,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Avisos y Pendientes"
-                android:textColor="#0F172A"
+                android:textColor="@color/text_primary"
                 android:textSize="22sp"
                 android:textStyle="bold" />
 
@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="Estado general de tus cursos en plataforma"
-                android:textColor="#64748B"
+                android:textColor="@color/text_secondary"
                 android:textSize="13sp" />
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
@@ -63,8 +63,8 @@
                     app:cardCornerRadius="14dp"
                     app:cardElevation="0dp"
                     app:strokeWidth="1dp"
-                    app:strokeColor="#CBD5E1"
-                    app:cardBackgroundColor="#FFFFFF">
+                    app:strokeColor="@color/border_card"
+                    app:cardBackgroundColor="@color/bg_card">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -92,7 +92,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Al corriente"
-                                android:textColor="#0F172A"
+                                android:textColor="@color/text_primary"
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
 
@@ -102,7 +102,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
                                 android:text="No tienes entregas urgentes sin revisar."
-                                android:textColor="#64748B"
+                                android:textColor="@color/text_secondary"
                                 android:textSize="12sp" />
                         </LinearLayout>
                     </LinearLayout>
@@ -119,7 +119,7 @@
                     android:foreground="?attr/selectableItemBackground"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="1dp"
-                    app:cardBackgroundColor="#FFFFFF">
+                    app:cardBackgroundColor="@color/bg_card">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -147,7 +147,7 @@
                                 android:layout_marginStart="12dp"
                                 android:layout_weight="1"
                                 android:text="Actividades"
-                                android:textColor="#0F172A"
+                                android:textColor="@color/text_primary"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
 
@@ -170,7 +170,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
                             android:text="0 activas"
-                            android:textColor="#334155"
+                            android:textColor="@color/text_body"
                             android:textSize="14sp" />
 
                         <TextView
@@ -178,7 +178,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="Tareas, proyectos y entregables con vigencia activa"
-                            android:textColor="#94A3B8"
+                            android:textColor="@color/text_tertiary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -194,7 +194,7 @@
                     android:foreground="?attr/selectableItemBackground"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="1dp"
-                    app:cardBackgroundColor="#FFFFFF">
+                    app:cardBackgroundColor="@color/bg_card">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -222,7 +222,7 @@
                                 android:layout_marginStart="12dp"
                                 android:layout_weight="1"
                                 android:text="Exámenes"
-                                android:textColor="#0F172A"
+                                android:textColor="@color/text_primary"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
 
@@ -234,7 +234,7 @@
                                 android:paddingHorizontal="8dp"
                                 android:paddingVertical="3dp"
                                 android:text="0 nuevos"
-                                android:textColor="#0284C7"
+                                android:textColor="@color/brand_uv_blue"
                                 android:textSize="11sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -245,7 +245,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
                             android:text="0 activos"
-                            android:textColor="#334155"
+                            android:textColor="@color/text_body"
                             android:textSize="14sp" />
 
                         <TextView
@@ -253,7 +253,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="Evaluaciones y cuestionarios disponibles"
-                            android:textColor="#94A3B8"
+                            android:textColor="@color/text_tertiary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -269,7 +269,7 @@
                     android:foreground="?attr/selectableItemBackground"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="1dp"
-                    app:cardBackgroundColor="#FFFFFF">
+                    app:cardBackgroundColor="@color/bg_card">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -297,7 +297,7 @@
                                 android:layout_marginStart="12dp"
                                 android:layout_weight="1"
                                 android:text="Foros"
-                                android:textColor="#0F172A"
+                                android:textColor="@color/text_primary"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
 
@@ -309,7 +309,7 @@
                                 android:paddingHorizontal="8dp"
                                 android:paddingVertical="3dp"
                                 android:text="0 nuevos"
-                                android:textColor="#0284C7"
+                                android:textColor="@color/brand_uv_blue"
                                 android:textSize="11sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -320,7 +320,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
                             android:text="0 activos"
-                            android:textColor="#334155"
+                            android:textColor="@color/text_body"
                             android:textSize="14sp" />
 
                         <TextView
@@ -328,7 +328,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="Hilos y debates abiertos para participación"
-                            android:textColor="#94A3B8"
+                            android:textColor="@color/text_tertiary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -345,7 +345,7 @@
                     android:foreground="?attr/selectableItemBackground"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="1dp"
-                    app:cardBackgroundColor="#FFFFFF">
+                    app:cardBackgroundColor="@color/bg_card">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -373,7 +373,7 @@
                                 android:layout_marginStart="12dp"
                                 android:layout_weight="1"
                                 android:text="Mensajería"
-                                android:textColor="#0F172A"
+                                android:textColor="@color/text_primary"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
 
@@ -385,7 +385,7 @@
                                 android:paddingHorizontal="8dp"
                                 android:paddingVertical="3dp"
                                 android:text="0 sin leer"
-                                android:textColor="#64748B"
+                                android:textColor="@color/text_secondary"
                                 android:textSize="11sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -395,7 +395,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
                             android:text="Mensajes institucionales enviados por profesores"
-                            android:textColor="#94A3B8"
+                            android:textColor="@color/text_tertiary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

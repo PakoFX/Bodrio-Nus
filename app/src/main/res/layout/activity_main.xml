@@ -4,14 +4,14 @@
     android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#EEF2F6">
+    android:background="@color/bg_screen">
 
     <!-- Banner de sesión expirada / Modo sin conexión -->
     <LinearLayout
         android:id="@+id/layoutOfflineBanner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#FEF3C7"
+        android:background="@color/banner_offline_bg"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingHorizontal="16dp"
@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="⚠️ Sesión caducada. Mostrando datos guardados."
-            android:textColor="#92400E"
+            android:textColor="@color/banner_offline_text"
             android:textSize="12sp"
             android:textStyle="bold" />
 
@@ -43,8 +43,8 @@
             android:paddingHorizontal="14dp"
             android:paddingVertical="4dp"
             android:text="Renovar"
-            app:backgroundTint="#FDE68A"
-            android:textColor="#92400E"
+            app:backgroundTint="@color/banner_offline_btn_bg"
+            android:textColor="@color/banner_offline_text"
             android:textSize="12sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -62,7 +62,7 @@
         android:id="@+id/bottomNavigation"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="@color/bottom_nav_bg"
         app:elevation="8dp"
         app:labelVisibilityMode="labeled"
         app:itemIconTint="@color/selector_bottom_nav"

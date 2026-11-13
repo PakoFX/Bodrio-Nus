@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#EEF2F6">
+    android:background="@color/bg_screen">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="@color/bg_card"
         app:elevation="2dp">
 
         <LinearLayout
@@ -24,7 +25,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Perfil de Estudiante"
-                android:textColor="#0F172A"
+                android:textColor="@color/text_primary"
                 android:textSize="22sp"
                 android:textStyle="bold" />
 
@@ -33,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="Información de la cuenta institucional UV"
-                android:textColor="#64748B"
+                android:textColor="@color/text_secondary"
                 android:textSize="13sp" />
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
@@ -49,132 +50,59 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Credencial digital oficial del estudiante (Offline) -->
+            <!-- Tarjeta resumen de perfil del estudiante -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardStudentCredential"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardCornerRadius="18dp"
+                app:cardCornerRadius="16dp"
                 app:cardElevation="3dp"
+                app:cardBackgroundColor="@color/bg_card"
                 app:strokeWidth="1dp"
-                app:strokeColor="#CBD5E1"
-                app:cardBackgroundColor="#FFFFFF">
+                app:strokeColor="@color/border_card">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
 
-                    <!-- Franja superior de la credencial con degradado UV -->
+                    <!-- Foto de perfil circular -->
+                    <ImageView
+                        android:id="@+id/imgAvatar"
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
+                        android:background="@drawable/bg_avatar_circle"
+                        android:contentDescription="Foto de perfil"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_nav_profile"
+                        android:clipToOutline="true" />
+
+                    <!-- Datos del estudiante -->
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/bg_credential_header"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="12dp">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="UNIVERSIDAD VERACRUZANA"
-                                android:textColor="#FFFFFF"
-                                android:textSize="12sp"
-                                android:textStyle="bold"
-                                android:letterSpacing="0.04" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="CREDENCIAL DIGITAL • ESTUDIANTE"
-                                android:textColor="#B2DFDB"
-                                android:textSize="10sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <!-- Reloj en vivo antifraude -->
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/bg_badge_live"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="4dp">
-
-                            <View
-                                android:layout_width="6dp"
-                                android:layout_height="6dp"
-                                android:background="@drawable/bg_dot_accent"
-                                android:layout_marginEnd="6dp" />
-
-                            <TextClock
-                                android:id="@+id/clockProfileLive"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:format12Hour="hh:mm:ss a"
-                                android:format24Hour="HH:mm:ss"
-                                android:textColor="#2E7D32"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_horizontal"
+                        android:layout_weight="1"
                         android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="84dp"
-                            android:layout_height="84dp"
-                            app:cardCornerRadius="42dp"
-                            app:cardElevation="2dp"
-                            app:strokeWidth="2dp"
-                            app:strokeColor="#00796B">
-
-                            <ImageView
-                                android:id="@+id/imgAvatar"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:contentDescription="Foto de perfil"
-                                android:scaleType="centerCrop"
-                                android:src="@drawable/ic_nav_profile" />
-                        </com.google.android.material.card.MaterialCardView>
+                        android:paddingStart="14dp">
 
                         <TextView
                             android:id="@+id/txtStudentName"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:gravity="center"
-                            android:text="Estudiante"
-                            android:textColor="#0F172A"
-                            android:textSize="17sp"
+                            android:text="Francisco Xavier Viveros Salmones"
+                            android:textColor="@color/text_primary"
+                            android:textSize="15sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/txtStudentId"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:background="@drawable/bg_pill_badge"
-                            android:paddingHorizontal="12dp"
-                            android:paddingVertical="3dp"
-                            android:text="zs00000000"
-                            android:textColor="#0284C7"
+                            android:layout_marginTop="2dp"
+                            android:text="S24022198"
+                            android:textColor="@color/brand_uv_green"
                             android:textSize="13sp"
                             android:textStyle="bold" />
 
@@ -182,41 +110,54 @@
                             android:id="@+id/txtStudentProgram"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:gravity="center"
-                            android:text="Estudiante Activo"
-                            android:textColor="#334155"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
+                            android:layout_marginTop="4dp"
+                            android:text="Ingeniería de Software"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
 
                         <TextView
                             android:id="@+id/txtStudentCampus"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:gravity="center"
-                            android:text="Universidad Veracruzana"
-                            android:textColor="#64748B"
+                            android:text="Coatzacoalcos"
+                            android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
 
-                        <!-- Botón para ver credencial completa -->
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnOpenCredential"
-                            android:layout_width="match_parent"
+                        <!-- Vigencia oculta (se llena desde código, no se muestra en resumen) -->
+                        <TextView
+                            android:id="@+id/txtStudentValidity"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="14dp"
-                            android:text="Mostrar Credencial Oficial (QR y Barras)"
-                            android:textColor="#FFFFFF"
-                            android:textSize="13sp"
-                            app:backgroundTint="#00897B"
-                            app:cornerRadius="10dp"
-                            app:icon="@drawable/ic_qr_code"
-                            app:iconGravity="textStart"
-                            app:iconTint="#FFFFFF" />
+                            android:visibility="gone"
+                            android:text="AGO-ENE 2027" />
+
+                        <!-- Reloj oculto (se usa desde código) -->
+                        <TextView
+                            android:id="@+id/clockProfileLive"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone" />
 
                     </LinearLayout>
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <!-- Botón para expandir credencial oficial a pantalla completa -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnOpenCredential"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Abrir Credencial Completa con Código QR"
+                android:textColor="@color/bg_card"
+                android:textSize="13sp"
+                app:backgroundTint="@color/brand_uv_green"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_qr_code"
+                app:iconGravity="textStart"
+                app:iconTint="@color/bg_card" />
 
             <!-- Datos institucionales de contacto -->
             <com.google.android.material.card.MaterialCardView
@@ -225,7 +166,7 @@
                 android:layout_marginTop="16dp"
                 app:cardCornerRadius="14dp"
                 app:cardElevation="1dp"
-                app:cardBackgroundColor="#FFFFFF">
+                app:cardBackgroundColor="@color/bg_card">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -237,7 +178,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="DATOS DE CUENTA"
-                        android:textColor="#94A3B8"
+                        android:textColor="@color/text_tertiary"
                         android:textSize="11sp"
                         android:textStyle="bold" />
 
@@ -252,7 +193,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Correo institucional"
-                            android:textColor="#64748B"
+                            android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
 
                         <TextView
@@ -261,7 +202,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="usuario@estudiantes.uv.mx"
-                            android:textColor="#0F172A"
+                            android:textColor="@color/text_primary"
                             android:textSize="14sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -278,7 +219,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Correo alterno"
-                            android:textColor="#64748B"
+                            android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
 
                         <TextView
@@ -287,7 +228,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="usuario@gmail.com"
-                            android:textColor="#0F172A"
+                            android:textColor="@color/text_primary"
                             android:textSize="14sp" />
                     </LinearLayout>
 
@@ -302,7 +243,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Estado de la sesión"
-                            android:textColor="#64748B"
+                            android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
 
                         <TextView
@@ -327,7 +268,7 @@
                 android:layout_marginBottom="32dp"
                 app:cardCornerRadius="14dp"
                 app:cardElevation="1dp"
-                app:cardBackgroundColor="#FFFFFF">
+                app:cardBackgroundColor="@color/bg_card">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -339,9 +280,61 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="ACCIONES"
-                        android:textColor="#94A3B8"
+                        android:textColor="@color/text_tertiary"
                         android:textSize="11sp"
                         android:textStyle="bold" />
+
+                    <!-- Toggle modo oscuro -->
+                    <LinearLayout
+                        android:id="@+id/layoutDarkModeToggle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:paddingVertical="4dp"
+                        android:background="@android:color/transparent">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Modo oscuro"
+                                android:textColor="@color/text_primary"
+                                android:textSize="15sp" />
+
+                            <TextView
+                                android:id="@+id/txtDarkModeStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Desactivado"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchDarkMode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="false" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginBottom="4dp"
+                        android:background="@color/border_subtle" />
 
                     <!-- Botón buscar actualizaciones -->
                     <com.google.android.material.button.MaterialButton
@@ -351,10 +344,10 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:text="Buscar actualizaciones"
-                        android:textColor="#00897B"
-                        app:strokeColor="#00897B"
+                        android:textColor="@color/brand_uv_green"
+                        app:strokeColor="@color/brand_uv_green"
                         app:icon="@drawable/ic_nav_reload"
-                        app:iconTint="#00897B" />
+                        app:iconTint="@color/brand_uv_green" />
 
                     <!-- Botón cerrar sesión -->
                     <com.google.android.material.button.MaterialButton

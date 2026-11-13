@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.core.content.ContextCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -79,7 +80,7 @@ class ExamsActivity : AppCompatActivity() {
         recyclerExams = findViewById(R.id.recyclerExams)
         layoutEmpty = findViewById(R.id.layoutEmpty)
 
-        swipeRefresh.setColorSchemeColors(Color.parseColor("#00897B"))
+        swipeRefresh.setColorSchemeColors(ContextCompat.getColor(this, R.color.brand_uv_green))
         swipeRefresh.setOnRefreshListener {
             cargarExamenes()
         }
@@ -218,17 +219,17 @@ class ExamsAdapter(
             if (cal != null) {
                 badgeStatus.text = "Calificado (${"%.1f".format(cal)})"
                 badgeStatus.setBackgroundResource(R.drawable.bg_pill_active)
-                badgeStatus.setTextColor(Color.parseColor("#16A34A"))
+                badgeStatus.setTextColor(ContextCompat.getColor(itemView.context, R.color.badge_success_text))
                 txtPoints.text = "${"%.1f".format(cal)}/${"%.0f".format(valor)} pts"
             } else if (item.estaVencido) {
                 badgeStatus.text = "Concluido"
                 badgeStatus.setBackgroundResource(R.drawable.bg_pill_closed)
-                badgeStatus.setTextColor(Color.parseColor("#64748B"))
+                badgeStatus.setTextColor(ContextCompat.getColor(itemView.context, R.color.badge_neutral_text))
                 txtPoints.text = "${"%.0f".format(valor)} pts"
             } else {
                 badgeStatus.text = "Disponible"
                 badgeStatus.setBackgroundResource(R.drawable.bg_pill_badge)
-                badgeStatus.setTextColor(Color.parseColor("#0284C7"))
+                badgeStatus.setTextColor(ContextCompat.getColor(itemView.context, R.color.badge_info_text))
                 txtPoints.text = "${"%.0f".format(valor)} pts"
             }
 
