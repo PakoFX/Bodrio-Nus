@@ -242,6 +242,7 @@ class ProfileFragment : Fragment() {
         val vigenciaCorrecta = "AGO-ENE"
         val anioCorrect = "2027"
         val necesitaActualizar = cred == null ||
+            cred.name.isBlank() ||
             cred.monthsValidity != vigenciaCorrecta ||
             cred.yearValidity != anioCorrect ||
             !credEsDelUsuarioActual

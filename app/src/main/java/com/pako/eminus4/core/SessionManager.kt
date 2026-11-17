@@ -165,6 +165,8 @@ class SessionManager(context: Context) {
         )
         saveStudentCredential(
             base.copy(
+                // Recién iniciada la sesión el nombre puede faltar: se completa con el de la sesión
+                name = base.name.ifBlank { nombreRespaldo ?: getUserProfile().getNombreCompleto() },
                 program = datos.programa ?: base.program,
                 region = datos.campus ?: base.region,
                 facultad = datos.facultad ?: base.facultad,
