@@ -123,7 +123,10 @@ class CredentialFullscreenActivity : AppCompatActivity() {
             )
         }
 
-        findViewById<TextView>(R.id.txtFullStudentName).text = cred.getNombreFormateado()
+        // Si la credencial aún no trae nombre, usar el de la sesión (nunca dejarlo vacío)
+        val credConNombre = if (cred.name.isBlank())
+            cred.copy(name = sessionManager.getUserProfile().getNombreCompleto()) else cred
+        findViewById<TextView>(R.id.txtFullStudentName).text = credConNombre.getNombreFormateado()
         findViewById<TextView>(R.id.txtFullStudentId).text = cred.getMatriculaOficial()
         findViewById<TextView>(R.id.txtProgram).text = cred.getProgramaOficial().ifBlank { "Programa no registrado" }
         findViewById<TextView>(R.id.txtRegion).text = cred.getCampusOficial().ifBlank { "Campus no registrado" }
