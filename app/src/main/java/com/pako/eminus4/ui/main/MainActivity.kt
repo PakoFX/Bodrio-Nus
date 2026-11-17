@@ -115,7 +115,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         if (sessionManager.isSessionExpired()) {
             val tieneCursos = sessionManager.getCachedCourses().isNotEmpty()
-            val msg = if (tieneCursos) "⚠️ Sesión caducada. Mostrando datos guardados." else "⚠️ Sesión en línea caducada."
+            val msg = if (tieneCursos) "Sesión caducada. Mostrando datos guardados." else "Sesión en línea caducada."
             mostrarBannerSesionExpirada(msg)
         } else {
             ocultarBannerSesion()
@@ -127,7 +127,7 @@ class MainActivity : AppCompatActivity() {
         return ::layoutOfflineBanner.isInitialized && layoutOfflineBanner.visibility == View.VISIBLE
     }
 
-    fun mostrarBannerSesionExpirada(mensaje: String = "⚠️ Sesión caducada. Mostrando datos guardados.") {
+    fun mostrarBannerSesionExpirada(mensaje: String = "Sesión caducada. Mostrando datos guardados.") {
         runOnUiThread {
             layoutOfflineBanner.visibility = View.VISIBLE
             txtBannerMessage.text = mensaje
@@ -156,7 +156,7 @@ class MainActivity : AppCompatActivity() {
 
     fun notificarSesionExpirada() {
         sessionManager.setSessionExpired(true)
-        mostrarBannerSesionExpirada("⚠️ Sesión caducada. Mostrando datos guardados.")
+        mostrarBannerSesionExpirada("Sesión caducada. Mostrando datos guardados.")
     }
 
     private fun cambiarFragmento(target: Fragment) {

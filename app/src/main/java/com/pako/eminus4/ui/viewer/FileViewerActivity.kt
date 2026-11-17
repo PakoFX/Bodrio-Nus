@@ -37,6 +37,7 @@ import com.pako.eminus4.data.api.EminusApiClient
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import com.pako.eminus4.util.mostrarIconoArchivo
 
 class FileViewerActivity : AppCompatActivity() {
 
@@ -74,7 +75,7 @@ class FileViewerActivity : AppCompatActivity() {
     private lateinit var txtFileContent: TextView
     private lateinit var webOfficeViewer: WebView
     private lateinit var layoutOfficeViewer: LinearLayout
-    private lateinit var txtOfficeEmoji: TextView
+    private lateinit var imgOfficeIcon: ImageView
     private lateinit var txtOfficeFileName: TextView
     private lateinit var txtOfficeFileInfo: TextView
     private lateinit var btnOpenOfficeExternal: MaterialButton
@@ -145,7 +146,7 @@ class FileViewerActivity : AppCompatActivity() {
             loadWithOverviewMode = true
         }
         webOfficeViewer.setBackgroundColor(ContextCompat.getColor(this, R.color.bg_screen))
-        txtOfficeEmoji        = findViewById(R.id.txtOfficeEmoji)
+        imgOfficeIcon         = findViewById(R.id.imgOfficeIcon)
         txtOfficeFileName     = findViewById(R.id.txtOfficeFileName)
         txtOfficeFileInfo     = findViewById(R.id.txtOfficeFileInfo)
         btnOpenOfficeExternal = findViewById(R.id.btnOpenOfficeExternal)
@@ -339,11 +340,11 @@ class FileViewerActivity : AppCompatActivity() {
             }
             else -> {
                 layoutOfficeViewer.visibility = View.VISIBLE
-                val (emoji, typeDesc) = when (ext) {
-                    "zip", "rar", "7z" -> Pair("📦", "Archivo comprimido")
-                    else               -> Pair("📎", "Archivo ($ext)")
+                val typeDesc = when (ext) {
+                    "zip", "rar", "7z" -> "Archivo comprimido"
+                    else               -> "Archivo ($ext)"
                 }
-                txtOfficeEmoji.text    = emoji
+                imgOfficeIcon.mostrarIconoArchivo(file.name)
                 txtOfficeFileName.text = file.name
                 txtOfficeFileInfo.text = "$fileSize · $typeDesc"
             }

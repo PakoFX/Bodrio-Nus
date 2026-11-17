@@ -12,8 +12,10 @@ data class ActivityDetail(
     @SerializedName("fechaTermino")          val fechaTermino: String? = null,
     @SerializedName("fechaEntrega")          val fechaEntrega: String? = null,
     @SerializedName("fechaRevision")         val fechaRevision: String? = null,
-    @SerializedName("estado")                val estado: Int = 0,
-    @SerializedName("estadoEntrega")         val estadoEntrega: Int = 0,
+    // Int? a propósito: null = nunca tocada, 0 = borrador (ver EstadoAlumno). Gson sin constructor
+    // convertiría un null en 0 si el tipo fuera Int no-nulo.
+    @SerializedName("estado")                val estado: Int? = null,
+    @SerializedName("estadoEntrega")         val estadoEntrega: Int? = null,
     @SerializedName("tieneAdjuntos")         val tieneAdjuntos: Int = 0,
     @SerializedName("archivosActsConTamano") val archivosDocente: List<ActivityAttachment>? = null,
     @SerializedName("idCurso")               val idCurso: Long = 0,
@@ -31,14 +33,14 @@ data class ActivityDetail(
 
     val estaEntregada: Boolean
         // estado 1 = enviada sin revisar (observado en vivo: tiene fechaEntrega y no está calificada)
-        get() = estado in 1..3 || estadoEntrega in 1..3 || calificacion != null
+        get() = (estado ?: -1) in 1..4 || (estadoEntrega ?: -1) in 1..4 || calificacion != null
 
     val estaCalificada: Boolean
         get() = calificacion != null
 
     val estaCerrada: Boolean
         get() {
-            if (calificacion != null || estado == 3) return true
+            if (calificacion != null || estado == 3 || estado == 4) return true
             // Si Eminus nos dice el estado real de la actividad, ese manda (respeta prórrogas)
             admiteEntregaSegunEminus?.let { return !it }
             if (estado == 2 || estado == 3 || estadoEntrega == 2 || estadoEntrega == 3) return true

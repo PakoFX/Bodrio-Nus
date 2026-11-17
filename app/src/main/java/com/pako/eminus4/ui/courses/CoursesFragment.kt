@@ -170,7 +170,7 @@ class CoursesFragment : Fragment() {
 
                 if (allCourses.isNotEmpty()) {
                     val mensaje = if (esExpirada) {
-                        "⚠️ Sesión caducada. Mostrando cursos guardados."
+                        "Sesión caducada. Mostrando cursos guardados."
                     } else {
                         "Modo sin conexión. Mostrando cursos guardados."
                     }
@@ -178,7 +178,7 @@ class CoursesFragment : Fragment() {
                     aplicarFiltro(soloActivos = chipFilterActivos.isChecked)
                 } else {
                     val mensaje = if (esExpirada) {
-                        "⚠️ Sesión en línea caducada."
+                        "Sesión en línea caducada."
                     } else {
                         "Sin conexión a internet."
                     }

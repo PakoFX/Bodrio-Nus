@@ -16,6 +16,7 @@ import android.webkit.MimeTypeMap
 import android.webkit.WebView
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -39,6 +40,8 @@ import com.pako.eminus4.data.model.ActivityDetail
 import com.pako.eminus4.data.model.DeliveryAttachment
 import com.pako.eminus4.data.model.StudentDelivery
 import com.pako.eminus4.ui.viewer.FileViewerActivity
+import com.pako.eminus4.util.iconoInicio
+import com.pako.eminus4.util.mostrarIconoArchivo
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -353,19 +356,35 @@ class ActivityDetailActivity : AppCompatActivity() {
             badgeStatus.setTextColor(ContextCompat.getColor(this, R.color.badge_info_text))
             txtScoreValue.text = "Valor: ${"%.0f".format(valor)} pts"
         } else {
-            badgeStatus.text = "Pendiente"
-            badgeStatus.setBackgroundResource(R.drawable.bg_pill_closed)
-            badgeStatus.setTextColor(ContextCompat.getColor(this, R.color.badge_warning_text))
+            // Mismo vocabulario que Avisos (EstadoAlumno)
+            val (texto, color) = when {
+                detail.estaCerrada -> "No entregada" to R.color.badge_error_text
+                detail.estado == 0 -> "Borrador sin enviar" to R.color.badge_warning_text
+                else -> "Por hacer" to R.color.badge_warning_text
+            }
+            badgeStatus.text = texto
+            badgeStatus.setBackgroundResource(R.drawable.bg_status_pill)
+            badgeStatus.setTextColor(ContextCompat.getColor(this, color))
             txtScoreValue.text = "Valor: ${"%.0f".format(valor)} pts"
         }
 
         // Fechas
-        txtFechaInicio.text  = "📅 Inicio: ${formatearFechaIso(detail.fechaInicio)}"
-        txtFechaTermino.text = "⏳ Límite: ${formatearFechaIso(detail.fechaTermino)}"
+        txtFechaInicio.text  = "Inicio: ${formatearFechaIso(detail.fechaInicio)}"
+        txtFechaInicio.iconoInicio(R.drawable.ic_event, ContextCompat.getColor(this, R.color.text_secondary))
+        txtFechaTermino.text = "Límite: ${formatearFechaIso(detail.fechaTermino)}"
+        txtFechaTermino.iconoInicio(R.drawable.ic_schedule, ContextCompat.getColor(this, R.color.text_secondary))
 
-        if (!detail.fechaEntrega.isNullOrBlank()) {
+        // Eminus también llena fechaEntrega cuando solo existe un borrador (estado 0)
+        if (!detail.fechaEntrega.isNullOrBlank() && detail.estaEntregada) {
             txtFechaEntrega.visibility = View.VISIBLE
-            txtFechaEntrega.text = "✅ Entregada el: ${formatearFechaIso(detail.fechaEntrega)}"
+            txtFechaEntrega.setTextColor(ContextCompat.getColor(this, R.color.badge_success_text))
+            txtFechaEntrega.text = "Entregada el: ${formatearFechaIso(detail.fechaEntrega)}"
+            txtFechaEntrega.iconoInicio(R.drawable.ic_check_circle)
+        } else if (!detail.fechaEntrega.isNullOrBlank() && detail.estado == 0) {
+            txtFechaEntrega.visibility = View.VISIBLE
+            txtFechaEntrega.setTextColor(ContextCompat.getColor(this, R.color.badge_warning_text))
+            txtFechaEntrega.text = "Borrador guardado el ${formatearFechaIso(detail.fechaEntrega)} (aún no se envía)"
+            txtFechaEntrega.iconoInicio(R.drawable.ic_edit_note)
         } else {
             txtFechaEntrega.visibility = View.GONE
         }
@@ -424,13 +443,13 @@ class ActivityDetailActivity : AppCompatActivity() {
 
             for (adj in adjuntos) {
                 val itemView = LayoutInflater.from(this).inflate(R.layout.item_attachment, layoutAttachmentsList, false)
-                val emoji = itemView.findViewById<TextView>(R.id.txtAttachmentEmoji)
+                val icono = itemView.findViewById<ImageView>(R.id.imgAttachmentIcon)
                 val nombre = itemView.findViewById<TextView>(R.id.txtAttachmentName)
                 val peso = itemView.findViewById<TextView>(R.id.txtAttachmentSize)
                 val btnView = itemView.findViewById<MaterialButton>(R.id.btnViewOnline)
                 val btnDownload = itemView.findViewById<MaterialButton>(R.id.btnDownload)
 
-                emoji.text = adj.getIconEmoji()
+                icono.mostrarIconoArchivo(adj.nombreOriginal)
                 nombre.text = adj.nombreOriginal
                 peso.text = "${adj.peso ?: "Archivo adjunto"} · Material docente"
 
@@ -537,7 +556,7 @@ class ActivityDetailActivity : AppCompatActivity() {
             apiClient.deleteDeliveryFile(idCurso, archivo.idArchivo) { result ->
                 result.onSuccess {
                     setEnviando(false)
-                    Toast.makeText(this, "🗑️ Archivo quitado de tu entrega", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Archivo quitado de tu entrega", Toast.LENGTH_SHORT).show()
                     if (activityId == idActividad) cargarDetalleActividad()
                 }.onFailure { e ->
                     terminarConError("No se pudo quitar el archivo: ${mensajeError(e)}")
@@ -563,13 +582,13 @@ class ActivityDetailActivity : AppCompatActivity() {
 
             for (archivo in archivos) {
                 val itemView = LayoutInflater.from(this).inflate(R.layout.item_attachment, layoutDeliveredFilesList, false)
-                val emoji = itemView.findViewById<TextView>(R.id.txtAttachmentEmoji)
+                val icono = itemView.findViewById<ImageView>(R.id.imgAttachmentIcon)
                 val nombre = itemView.findViewById<TextView>(R.id.txtAttachmentName)
                 val peso = itemView.findViewById<TextView>(R.id.txtAttachmentSize)
                 val btnView = itemView.findViewById<MaterialButton>(R.id.btnViewOnline)
                 val btnDownload = itemView.findViewById<MaterialButton>(R.id.btnDownload)
 
-                emoji.text = archivo.getIconEmoji()
+                icono.mostrarIconoArchivo(archivo.nombreOriginal)
                 nombre.text = archivo.nombreOriginal
                 peso.text = "${archivo.peso ?: "Archivo entregado"} · Tu entrega"
 
@@ -792,7 +811,7 @@ class ActivityDetailActivity : AppCompatActivity() {
                         setEnviando(false)
                         limpiarArchivoSeleccionado()
                         modoEdicion = false   // entrega actualizada: volver a solo lectura
-                        Toast.makeText(this, "✅ Entrega enviada a Eminus", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, "Entrega enviada a Eminus", Toast.LENGTH_LONG).show()
                         // Si el usuario navegó a otra actividad mientras tanto, no recargamos encima
                         if (activityId == idActividad) cargarDetalleActividad()
                     }.onFailure { e ->
