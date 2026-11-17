@@ -1,96 +1,135 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Tarjeta de actividad para la agenda de Avisos y "Todas las actividades" -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="12dp"
     android:layout_marginVertical="5dp"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
     app:cardBackgroundColor="@color/bg_card"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="0.5dp"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="0dp"
     app:strokeColor="@color/border_subtle"
     app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="14dp">
+        android:orientation="horizontal">
+
+        <!-- Franja con el color del curso -->
+        <View
+            android:id="@+id/viewCourseStripe"
+            android:layout_width="5dp"
+            android:layout_height="match_parent"
+            android:background="@color/brand_uv_green" />
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:paddingStart="14dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="12dp">
+
+            <!-- Curso + etiqueta de equipo -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/txtCourseBadge"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    tools:text="DISEÑO DE SOFTWARE" />
+
+                <TextView
+                    android:id="@+id/txtTeamTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_status_pill"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="2dp"
+                    android:text="En equipo"
+                    android:textColor="@color/brand_uv_blue"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+            </LinearLayout>
 
             <TextView
-                android:id="@+id/txtCourseBadge"
-                android:layout_width="0dp"
+                android:id="@+id/txtActivityTitle"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginTop="4dp"
                 android:ellipsize="end"
-                android:maxLines="1"
-                android:text="Nombre del Curso"
-                android:textColor="@color/brand_uv_green"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/badgeStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/bg_pill_badge"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="3dp"
-                android:text="Pendiente"
-                android:textColor="@color/brand_uv_blue"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/txtActivityTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:text="Título de la Actividad o Tarea"
-            android:textColor="@color/text_primary"
-            android:textSize="15sp"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/txtDueDate"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="⏳ Vence: 12 nov 2026, 23:59"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/txtPoints"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="10 pts"
+                android:maxLines="2"
                 android:textColor="@color/text_primary"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="Actividad 08 Diagrama de Componentes" />
+
+            <!-- Estado / plazo + puntos o calificación -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/badgeStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_status_pill"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        tools:text="Por hacer" />
+
+                    <TextView
+                        android:id="@+id/txtDueDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        tools:text="Vence en 2 días · mié 18, 23:45" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/txtPoints"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:gravity="end"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    tools:text="10 pts" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
-

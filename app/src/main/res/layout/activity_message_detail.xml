@@ -181,7 +181,11 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="📎 Archivos Adjuntos"
+                            android:drawableStart="@drawable/ic_attach_file"
+                            android:drawablePadding="6dp"
+                            android:drawableTint="@color/text_secondary"
+                            android:gravity="center_vertical"
+                            android:text="Archivos adjuntos"
                             android:textColor="@color/text_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />

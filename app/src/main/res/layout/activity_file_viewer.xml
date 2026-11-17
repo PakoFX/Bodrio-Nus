@@ -158,15 +158,15 @@
                     android:orientation="vertical"
                     android:padding="24dp">
 
-                    <TextView
-                        android:id="@+id/txtOfficeEmoji"
+                    <ImageView
+                        android:id="@+id/imgOfficeIcon"
                         android:layout_width="72dp"
                         android:layout_height="72dp"
                         android:background="@drawable/bg_stat_pill"
-                        android:backgroundTint="@color/text_body"
-                        android:gravity="center"
-                        android:textSize="36sp"
-                        tools:text="📙" />
+                        android:contentDescription="@null"
+                        android:padding="18dp"
+                        android:src="@drawable/ic_attach_file"
+                        app:tint="@color/text_secondary" />
 
                     <TextView
                         android:id="@+id/txtOfficeFileName"
@@ -239,11 +239,12 @@
             android:padding="24dp"
             android:visibility="gone">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="⚠️"
-                android:textSize="40sp" />
+            <ImageView
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_warning"
+                app:tint="@color/badge_warning_text" />
 
             <TextView
                 android:id="@+id/txtErrorMessage"

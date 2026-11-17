@@ -121,7 +121,7 @@
                                 android:id="@+id/txtFechaInicio"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="📅 Inicio: —"
+                                android:text="Inicio: —"
                                 android:textColor="@color/text_body"
                                 android:textSize="13sp" />
 
@@ -130,7 +130,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="6dp"
-                                android:text="⏳ Límite: —"
+                                android:text="Límite: —"
                                 android:textColor="@color/text_primary"
                                 android:textSize="13sp"
                                 android:textStyle="bold" />
@@ -140,7 +140,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="6dp"
-                                android:text="✅ Entregada el: —"
+                                android:text="Entregada el: —"
                                 android:textColor="#16A34A"
                                 android:textSize="13sp"
                                 android:visibility="gone" />
@@ -294,11 +294,12 @@
                             android:padding="12dp"
                             android:visibility="gone">
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="📄"
-                                android:textSize="20sp" />
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_description"
+                                app:tint="@color/text_secondary" />
 
                             <TextView
                                 android:id="@+id/txtSelectedFileName"
@@ -385,11 +386,12 @@
                             android:padding="12dp"
                             android:visibility="gone">
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="🔒"
-                                android:textSize="20sp" />
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_lock"
+                                app:tint="@color/text_secondary" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -440,7 +442,11 @@
                             android:layout_marginTop="12dp"
                             android:background="@drawable/bg_stat_pill"
                             android:padding="10dp"
-                            android:text="✏️ Estás editando una entrega que tu docente ya puede ver. Lo que agregues o quites se aplica en Eminus."
+                            android:drawableStart="@drawable/ic_edit"
+                            android:drawablePadding="8dp"
+                            android:drawableTint="@color/text_secondary"
+                            android:gravity="center_vertical"
+                            android:text="Estás editando una entrega que tu docente ya puede ver. Lo que agregues o quites se aplica en Eminus."
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp"
                             android:visibility="gone" />

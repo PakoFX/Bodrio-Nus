@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/abc_ic_ab_back_material"
-            app:title="Todas las Actividades"
+            app:title="Mis actividades"
             app:titleTextColor="@color/text_primary" />
 
         <!-- Filtros por Chips -->
@@ -35,33 +35,33 @@
                 app:singleSelection="true">
 
                 <com.google.android.material.chip.Chip
-                    android:id="@+id/chipTodas"
+                    android:id="@+id/chipPorHacer"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
-                    android:text="Todas" />
+                    android:text="Por hacer" />
 
                 <com.google.android.material.chip.Chip
-                    android:id="@+id/chipPendientes"
+                    android:id="@+id/chipEsperando"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="⏳ Pendientes" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipEntregadas"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="✅ Entregadas" />
+                    android:text="Esperando calificación" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipCalificadas"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="🏆 Calificadas" />
+                    android:text="Calificadas" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipNoEntregadas"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No entregadas" />
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
     </com.google.android.material.appbar.AppBarLayout>
@@ -81,7 +81,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
-                android:paddingVertical="8dp" />
+                android:paddingHorizontal="12dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="24dp" />
 
             <LinearLayout
                 android:id="@+id/layoutEmpty"
@@ -92,27 +94,32 @@
                 android:padding="32dp"
                 android:visibility="gone">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="🎉"
-                    android:textSize="54sp" />
+                <ImageView
+                    android:id="@+id/imgEmptyIcon"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_task_alt"
+                    app:tint="@color/text_tertiary" />
 
                 <TextView
+                    android:id="@+id/txtEmptyTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="Sin actividades encontradas"
+                    android:gravity="center"
+                    android:text="Sin actividades"
                     android:textColor="@color/text_title"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/txtEmptyDesc"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:gravity="center"
-                    android:text="No se encontraron entregables con el filtro seleccionado."
+                    android:text=""
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
             </LinearLayout>

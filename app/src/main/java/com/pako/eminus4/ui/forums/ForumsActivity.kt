@@ -28,6 +28,7 @@ import com.pako.eminus4.core.SessionManager
 import com.pako.eminus4.data.api.EminusApiClient
 import com.pako.eminus4.data.model.ForumItem
 import java.util.concurrent.atomic.AtomicInteger
+import com.pako.eminus4.util.iconoInicio
 
 class ForumsActivity : AppCompatActivity() {
 
@@ -86,15 +87,15 @@ class ForumsActivity : AppCompatActivity() {
         adapter = ForumsAdapter { forum ->
             val cleanDesc = HtmlCompat.fromHtml(forum.descripcion ?: "", HtmlCompat.FROM_HTML_MODE_COMPACT).toString().trim()
             val msg = buildString {
-                append("📚 Curso: ${forum.nombreCurso}\n\n")
+                append("Curso: ${forum.nombreCurso}\n\n")
                 if (cleanDesc.isNotBlank()) append("$cleanDesc\n\n")
-                append("💬 Comentarios: ${forum.totalComentarios}")
+                append("Comentarios: ${forum.totalComentarios}")
                 if (forum.nuevosComentarios > 0) append(" (${forum.nuevosComentarios} nuevos)")
                 append("\n")
                 val valor = forum.valor ?: 10.0
                 val cal = forum.calificacion
                 if (cal != null) {
-                    append("🏆 Calificación: ${"%.1f".format(cal)} / ${"%.0f".format(valor)} pts")
+                    append("Calificación: ${"%.1f".format(cal)} / ${"%.0f".format(valor)} pts")
                 } else {
                     append("Valor: ${"%.0f".format(valor)} pts")
                 }
@@ -200,7 +201,8 @@ class ForumsAdapter(
             val cleanDesc = HtmlCompat.fromHtml(item.descripcion ?: "", HtmlCompat.FROM_HTML_MODE_COMPACT).toString().trim()
             txtForumSnippet.text = if (cleanDesc.isNotBlank()) cleanDesc else "Sin descripción adicional."
 
-            txtTotalComments.text = "💬 ${item.totalComentarios} comentario${if (item.totalComentarios == 1) "" else "s"}"
+            txtTotalComments.text = "${item.totalComentarios} comentario${if (item.totalComentarios == 1) "" else "s"}"
+            txtTotalComments.iconoInicio(R.drawable.ic_forum, tamanoDp = 14, separacionDp = 4)
 
             val valor = item.valor ?: 10.0
             val cal = item.calificacion

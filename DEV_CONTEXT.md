@@ -20,7 +20,7 @@
 6. **ACTIVIDADES CERRADAS O CALIFICADAS NO ADMITEN ENTREGAS:** Si la actividad ya tiene calificación o pasó su `fechaTermino`, los botones de selección y envío de archivos DEBEN ocultarse y mostrarse el aviso con candado `🔒`.
 7. **FEEDBACK DEL PROFESOR CON IMÁGENES/STICKERS:** Eminus usa Froala con imágenes públicas en `https://eminus.uv.mx/eminusapi/froala/...`. Deben cargarse mediante `webTeacherFeedback` transparente con `loadDataWithBaseURL("https://eminus.uv.mx", ...)`.
 8. **IDIOMA DE LA UI:** Todo el texto visible para el usuario debe estar en **Español**.
-9. **VERSIÓN DE LA APP:** Con cada sesión de trabajo que añada funcionalidad real, incrementar `versionCode` (+1) y `versionName` (semver) en `app/build.gradle.kts`. Esquema: `MAJOR.MINOR.PATCH` — MINOR para features nuevas, PATCH para bugfixes. **Versión actual: 2.6.0 (versionCode 13).**
+9. **VERSIÓN DE LA APP:** Con cada sesión de trabajo que añada funcionalidad real, incrementar `versionCode` (+1) y `versionName` (semver) en `app/build.gradle.kts`. Esquema: `MAJOR.MINOR.PATCH` — MINOR para features nuevas, PATCH para bugfixes. **Versión actual: 2.7.0 (versionCode 14).**
 10. **MODO SIN CONEXIÓN Y RESILIENCIA DE SESIÓN (NO EXPULSIÓN ABRUPTA):**
     - Los errores 401 / caducidad de token **NUNCA DEBEN EXPULSAR AL USUARIO** a la pantalla de login ni borrar `SessionManager`.
     - `SplashActivity` permite entrar a `MainActivity` si hay datos en el teléfono (`hasSession()`), garantizando acceso offline a la credencial digital y cursos guardados.
@@ -49,8 +49,20 @@
   - **PPTX:** WebView local cargando `file:///android_asset/viewer/pptx_viewer.html` con `PptxViewJS.min.js` + `chart.umd.min.js` → diapositivas reales con navegación y swipe.
   - Botones superiores en visor: Compartir y Guardar en Descargas.
 
-- ✅ **Módulo Avisos — Pestaña "Avisos" (NotificationsFragment) con 4 cards funcionales:**
-  - **Actividades (`AllActivitiesActivity`):** Lista todas las actividades de todos los cursos activos. Filtros: Todas / Pendientes / Entregadas / Calificadas. Click en ítem abre `ActivityDetailActivity`.
+- ✅ **Criterio único de estado (v2.7.0) — `data/model/EstadoAlumno.kt` + `Activity.estadoAlumno`:**
+  - POR_HACER (abierta, `estado` null) · BORRADOR (abierta, `estado` 0) · ESPERANDO (`estado` 1/2) · CALIFICADA (`calificacion` != null o `estado` 3/4) · NO_ENTREGADA (cerrada y no enviada).
+  - "Abierta" = `estadoAct` 2/4; si no viene, por `fechaTermino`. **`Activity.estado` es `Int?` a propósito** (Gson sin constructor convertiría null en 0 y borraría la diferencia entre "nunca tocada" y "borrador").
+  - Úsalo en TODAS las pantallas (Avisos, lista del curso `ActivityAdapter`, detalle). Pruebas: `app/src/test/.../EstadoAlumnoTest.kt`.
+  - `util/Plazos.kt`: textos de fecha humanos ("Vence mañana, 23:45", "Vence en 3 días", "hace 2 h") con nivel de urgencia.
+- ✅ **Avisos como agenda (v2.7.0) — `NotificationsFragment`:** resumen ("Tienes N por hacer · X vencen en 3 días · K en equipo"), lista POR HACER con las tarjetas reales ordenadas por fecha (máx. 5 + "Ver todas"), y novedades que solo aparecen si hay algo: calificaciones de los últimos 14 días, mensajes sin leer, exámenes disponibles, foros con aportes nuevos; atajo "N entregas esperando calificación" y botones "Ir a". Datos vía `data/AgendaLoader.kt` (cursos activos + actividades; guarda `AgendaLoader.ultimo` en memoria para pintar al instante).
+  - Tarjeta compartida: `item_all_activity.xml` + `ui/courses/ActividadCardBinder.kt` (franja de color del curso, etiqueta 👥 En equipo, píldora de estado, plazo coloreado por urgencia; modo `compacto` en listas agrupadas).
+- ✅ **Sin emojis — íconos vectoriales (v2.7.0):** toda la UI usa **Material Icons (outlined, Apache 2.0)** convertidos a VectorDrawable en `res/drawable/ic_*.xml` (descargados de `@material-design-icons/svg@0.14.15`). **No volver a usar emojis en la UI.**
+  - Texto con ícono: `TextView.iconoInicio(R.drawable.ic_x, color)` (`util/Iconos.kt`). Ícono de archivo por extensión: `ImageView.mostrarIconoArchivo(nombre)` / `iconoArchivo()`.
+  - Cada `EstadoAlumno` trae su `icono`. Para agregar un ícono nuevo: bajar el SVG de ese paquete y convertirlo igual (un `<path>` por figura, `android:tint="?attr/colorControlNormal"`).
+- ✅ **Accesos rápidos de Avisos:** Actividades / Mensajes / Foros / Exámenes fijos en el encabezado (siempre visibles) con contador rojo (`bg_badge_count`): por hacer, mensajes sin leer, foros con aportes nuevos, exámenes disponibles.
+- ✅ **`ActivityDetail.estado` también es `Int?`** (mismo motivo que en `Activity`): antes una actividad nunca tocada aparecía como "Borrador" en el detalle.
+- ✅ **"Mis actividades" (`AllActivitiesActivity`, v2.7.0):** pestañas Por hacer / Esperando calificación / Calificadas / No entregadas con conteo. "Por hacer" ordenada por fecha; las demás agrupadas por curso (`item_section_header.xml`). Abre en la pestaña indicada con `AllActivitiesActivity.start(ctx, Pestana.X)`.
+- ✅ **Módulo Avisos — pantallas secundarias:**
   - **Exámenes (`ExamsActivity`):** Lista todos los exámenes de todos los cursos que tengan exámenes (`isActivo() || examenes > 0`). Filtros: Todos / Disponibles / Calificados. Click muestra dialog informativo "Accede desde Eminus Web".
   - **Foros (`ForumsActivity`):** Lista todos los foros de todos los cursos que tengan foros (`isActivo() || foros > 0`). Filtros: Todos / Con aportes nuevos. Badge de nuevos comentarios. Click muestra dialog informativo.
   - **Mensajería (`MessagesActivity` + `MessageDetailActivity`):** Bandeja Recibidos/Enviados (77+ mensajes reales). Click en mensaje abre detalle completo con cuerpo HTML, remitente, fecha, lista de adjuntos con botones Descargar/Ver.

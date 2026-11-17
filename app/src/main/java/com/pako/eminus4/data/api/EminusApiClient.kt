@@ -152,7 +152,9 @@ class EminusApiClient(private val sessionManager: SessionManager) {
                     }
 
                     val listType = object : com.google.gson.reflect.TypeToken<List<Activity>>() {}.type
-                    val actividades: List<Activity> = gson.fromJson(bodyString, listType)
+                    val actividades: List<Activity> =
+                        if (code == 204 || bodyString.isBlank()) emptyList()
+                        else gson.fromJson<List<Activity>>(bodyString, listType) ?: emptyList()
 
                     Log.d("EMINUS_API", "Actividades del curso $idCurso: ${actividades.size}")
                     postResult(onResult, Result.success(actividades))

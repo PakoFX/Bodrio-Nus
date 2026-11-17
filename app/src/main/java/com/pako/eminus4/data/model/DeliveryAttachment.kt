@@ -16,17 +16,5 @@ data class DeliveryAttachment(
         return "https://eminus.uv.mx/eminusapi/api/actividad/descargaEntregaArchivo/$idCurso/$activityId/$idArchivo"
     }
 
-    fun getIconEmoji(): String {
-        val ext = nombreOriginal.substringAfterLast(".", "").lowercase()
-        return when (ext) {
-            "pdf"        -> "📕"
-            "doc", "docx"-> "📘"
-            "xls", "xlsx"-> "📗"
-            "ppt", "pptx"-> "📙"
-            "zip", "rar" -> "📦"
-            "png", "jpg", "jpeg", "webp" -> "🖼️"
-            else         -> "📎"
-        }
-    }
 }
 
