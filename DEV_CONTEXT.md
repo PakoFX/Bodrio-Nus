@@ -92,9 +92,23 @@
 ### ¿Qué falta por hacer / Tarea activa?
 1. **Probar en vivo la entrega sin entrega previa** (paso de borrador) y revisar `adb logcat -s EMINUS_API`.
 2. **Foros / Exámenes — apertura in-app:** Actualmente muestran dialog informativo. Podría mejorarse con WebView al portal institucional de Eminus.
+2b. **Foto de la credencial en HD (pendiente, pedido por el usuario):** la foto que se baja de `szigral.aspx` es una miniatura **PNG de 60×80 px** (~8 KB) y se estira ~5× en la credencial (se ve borrosa). Pistas para conseguirla grande:
+   - MiUV tiene su propia **credencial digital** (sus recursos están en `dsiapes.uv.mx/MIUV/portales/Images/credencial/`): esa página probablemente usa una foto más grande. Falta su URL.
+   - La URL de la miniatura podría aceptar un parámetro de tamaño.
+   - API de la app oficial "Mi UV": `dsia.uv.mx/WebApi/General/ApiDocUV/Servicios/RecuperaInfoDocQR` (ver `MiuvApiTest`, hoy responde 400). Ruta más difícil.
+   - Siguiente paso: que el usuario pase la URL de la credencial de MiUV y la de la foto grande (clic derecho → abrir imagen), o agregar un diagnóstico en `MiuvSync` que registre SOLO rutas y tamaños (`naturalWidth/Height`) de las fotos encontradas, nunca valores personales.
+   - El cambio final sería solo en `MiuvSync.extraerDatos()`/`descargarFoto()` (a qué URL apunta).
 3. **Planes futuros (Solicitados por el usuario):**
    - **Buzón de sugerencias / comentarios en Perfil:** Agregar una caja de comentarios / feedback en la pantalla de Perfil (`ProfileFragment`) para que los usuarios puedan enviar ideas, sugerencias y mejoras directamente.
    - **Contador / Telemetría de usuarios activos:** Implementar un mecanismo anónimo y ligero para monitorear cuántas personas están usando la app realmente día a día (ej. ping telemetry o endpoint analítico).
+   - **Notificaciones / recordatorios en el teléfono** (parte D de la propuesta de Avisos, quedó pendiente):
+     - Avisar antes de que venza algo **Por hacer** (p. ej. 24 h y 3 h antes), calificaciones nuevas, mensajes sin leer nuevos y foros con aportes nuevos.
+     - Implementación sugerida: **WorkManager** (`androidx.work:work-runtime-ktx`, dependencia nueva) con un trabajo periódico (~cada 1–3 h) que reutilice `AgendaLoader` + el criterio `EstadoAlumno`/`Plazos`; recordatorios exactos de vencimiento con trabajos únicos programados a la hora límite menos 24 h / 3 h.
+     - Canal de notificaciones propio; pedir el permiso `POST_NOTIFICATIONS` en Android 13+ (ya está declarado en el manifest, falta pedirlo en tiempo de ejecución).
+     - Evitar duplicados guardando en SharedPreferences los ids ya notificados (por actividad + tipo de aviso).
+     - Si el token caducó (401): no avisar en silencio de cosas viejas; como mucho una notificación "Renueva tu sesión para seguir recibiendo avisos".
+     - Interruptor en Perfil para activarlas/desactivarlas (y quizá elegir qué tipos).
+     - Tocar la notificación abre la actividad / mensaje correspondiente (`ActividadCardBinder.abrirDetalle`, `MessageDetailActivity.start`).
 
 ---
 
