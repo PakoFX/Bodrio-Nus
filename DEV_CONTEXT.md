@@ -20,7 +20,7 @@
 6. **ACTIVIDADES CERRADAS O CALIFICADAS NO ADMITEN ENTREGAS:** Si la actividad ya tiene calificación o pasó su `fechaTermino`, los botones de selección y envío de archivos DEBEN ocultarse y mostrarse el aviso con candado `🔒`.
 7. **FEEDBACK DEL PROFESOR CON IMÁGENES/STICKERS:** Eminus usa Froala con imágenes públicas en `https://eminus.uv.mx/eminusapi/froala/...`. Deben cargarse mediante `webTeacherFeedback` transparente con `loadDataWithBaseURL("https://eminus.uv.mx", ...)`.
 8. **IDIOMA DE LA UI:** Todo el texto visible para el usuario debe estar en **Español**.
-9. **VERSIÓN DE LA APP:** Con cada sesión de trabajo que añada funcionalidad real, incrementar `versionCode` (+1) y `versionName` (semver) en `app/build.gradle.kts`. Esquema: `MAJOR.MINOR.PATCH` — MINOR para features nuevas, PATCH para bugfixes. **Versión actual: 2.4.3 (versionCode 11).**
+9. **VERSIÓN DE LA APP:** Con cada sesión de trabajo que añada funcionalidad real, incrementar `versionCode` (+1) y `versionName` (semver) en `app/build.gradle.kts`. Esquema: `MAJOR.MINOR.PATCH` — MINOR para features nuevas, PATCH para bugfixes. **Versión actual: 2.6.0 (versionCode 13).**
 10. **MODO SIN CONEXIÓN Y RESILIENCIA DE SESIÓN (NO EXPULSIÓN ABRUPTA):**
     - Los errores 401 / caducidad de token **NUNCA DEBEN EXPULSAR AL USUARIO** a la pantalla de login ni borrar `SessionManager`.
     - `SplashActivity` permite entrar a `MainActivity` si hay datos en el teléfono (`hasSession()`), garantizando acceso offline a la credencial digital y cursos guardados.
@@ -63,10 +63,11 @@
   - Persistencia permanente en `SessionManager.saveStudentCredential` (nunca se borra al estar sin conexión).
   - Diálogo de edición para personalizar la carrera/licenciatura mediante click sostenido en la credencial.
 
+- ✅ **Entrega real de archivos (v2.6.0, `ActivityDetailActivity.enviarEntrega`)** — ver sección 5b. **Validada en vivo el 16-nov-2026** (caso "entrega existente": `adjuntarEntrega` 200 + `InsertaActividadEntrega` 200; el archivo aparece, `idEstado` sigue en 1 y el `descEntrega` HTML original se conserva). Falta probar en vivo el caso "sin entrega previa" (creación de borrador).
+- ✅ **Actualización automática** (`AppUpdater.kt`): consulta GitHub Releases al abrir `MainActivity` (silencioso) y desde Perfil (manual).
+
 ### ¿Qué falta por hacer / Tarea activa?
-1. **Subida real de entregas multipart a Eminus:**
-   - Endpoint: `POST https://eminus.uv.mx/eminusapi/api/actividad/adjuntarEntrega?idCurso={c}&idActividad={a}&idActividadEntregas={e}`
-   - Confirmación: `POST https://eminus.uv.mx/eminusapi/api/Actividad/InsertaActividadEntrega`
+1. **Probar en vivo la entrega sin entrega previa** (paso de borrador) y revisar `adb logcat -s EMINUS_API`.
 2. **Foros / Exámenes — apertura in-app:** Actualmente muestran dialog informativo. Podría mejorarse con WebView al portal institucional de Eminus.
 3. **Planes futuros (Solicitados por el usuario):**
    - **Buzón de sugerencias / comentarios en Perfil:** Agregar una caja de comentarios / feedback en la pantalla de Perfil (`ProfileFragment`) para que los usuarios puedan enviar ideas, sugerencias y mejoras directamente.
@@ -89,6 +90,8 @@
 | **Cliente de Red** | `data/api/EminusApiClient.kt` | OkHttpClient con interceptores Bearer y cookies. Métodos para todas las llamadas API y descarga binaria a caché (`downloadFile`). |
 | **Autenticación** | `ui/auth/LoginWebViewActivity.kt` | WebView SSO institucional, extracción de token en `localStorage` y fix de bucle infinito. |
 | **Pantalla Principal** | `ui/main/MainActivity.kt` | BottomNavigationView M3 con navegación FragmentTransaction (`Courses`, `Notifications`, `Profile`). |
+| **Cursos** | `ui/courses/CoursesFragment.kt` | Lista de cursos (pestaña). La antigua `CoursesActivity` se eliminó en v2.6.0. |
+| **Actualizador** | `AppUpdater.kt` | Busca la última release en GitHub, descarga el APK e invoca el instalador. |
 | **Detalle Actividad** | `ui/courses/ActivityDetailActivity.kt` | Visualización de instrucciones, bloqueo de entregas, lista de adjuntos del profe y del alumno, feedback con imágenes, selector de archivo. |
 | **Visor en Línea** | `ui/viewer/FileViewerActivity.kt` | Orquestador de visualización in-app (PDF, DOCX, PPTX, imágenes, texto). |
 | | `ui/viewer/PdfPageAdapter.kt` | Adapter de `PdfRenderer` para scroll vertical fluido de páginas PDF. |
@@ -148,8 +151,9 @@ Eminus 4 no tiene una sola API; está dividido en **dos backends y un servidor d
 | Descargar Archivo Entregado | GET | Global | `actividad/descargaEntregaArchivo/{idCurso}/{idActividad}/{idArchivosEntregas}` | Bearer | Descarga binaria de lo que entregó el alumno. |
 | Notificaciones | GET | Global | `Global/NotificacionesUsuario` | Bearer | Contadores de mensajes, tareas, foros. |
 | Perfil de Usuario | GET | Global | `Usuario/getUsuario` | Bearer | Datos personales, correo, campus. |
-| Subir Adjunto de Entrega | POST | Global | `actividad/adjuntarEntrega?idCurso={c}&idActividad={a}&idActividadEntregas={e}` | Bearer | Multipart con clave `file`. |
-| Confirmar Entrega | POST | Global | `Actividad/InsertaActividadEntrega` | Bearer | JSON con payload de confirmación. |
+| Crear borrador / Confirmar Entrega | POST | Global | `Actividad/InsertaActividadEntrega` | Bearer | Mismo endpoint para borrador (`visible=0`) y envío (`visible=1`). Ver 5b. |
+| Quitar Archivo de Entrega | PUT | Global | `actividad/eliminaArchivoEntrega` | Bearer | JSON `{idArchivosEntregas, idcurso}` (sic, `idcurso` en minúsculas). Responde 200 con cuerpo vacío. Validado en vivo. |
+| Subir Adjunto de Entrega | POST | Global | `actividad/adjuntarEntrega?idCurso={c}&idActividad={a}&idActividadEntregas={e}` | Bearer | Multipart con clave `file`. Requiere `idActividadEntrega` > 0. 413 = archivo muy grande. |
 | **Lista de Exámenes** | GET | Global | `Examen/getExamenesEst/{idCurso}` | Bearer | 200 con array o 204 sin exámenes. Filtrar cursos con `isActivo() \|\| examenes > 0`. |
 | **Lista de Foros** | GET | Global | `Foro/getForos/{idCurso}/0` | Bearer | 200 siempre (array vacío si no hay). Filtrar cursos con `isActivo() \|\| foros > 0`. |
 | **Lista de Mensajes** | GET | Global | `centromensajes/GetListadoMensajes/{folderId}/0` | Bearer | folderId=1 Recibidos, folderId=2 Enviados. |
@@ -198,6 +202,25 @@ val estaCerrada: Boolean
   - Se habilitan los botones de selección y entrega.
   - El botón adapta su texto dinámicamente: "Seleccionar archivo para entrega…" (si es nueva) o "Modificar archivo de entrega…" (si ya tiene entrega previa).
 
+- Valores observados en vivo: `estadoAct` 1 = cerrada, 2 = abierta. `estado`/`idEstado` 0 = sin enviar (borrador), 1 = enviada sin revisar, 3 = calificada. `porEquipos` llega en el detalle.
+- Si la API envía `estadoAct`, **manda sobre la fecha** (regla de Eminus web): solo se entrega si `estadoAct` es 2 (abierta) o 4 (prórroga). `estado == 3` = calificada.
+- Actividades `porEquipos == 1` se bloquean en la app (no manejamos `idEquipo`; se entregan desde Eminus web).
+
+---
+
+## 📤 5b. FLUJO DE ENTREGA (extraído del bundle web `eminus4` v1.0.37)
+
+1. **Verificación:** se vuelve a pedir `Actividad/getActividadEstudiante/{c}/{a}` y se revisa `estaCerrada` / `esPorEquipos`.
+2. **Borrador (solo si no hay entrega, `idActividadEntrega == 0`):** `POST Actividad/InsertaActividadEntrega` con
+   `{idActividadEntrega:0, texto:"", idActividad, idCurso, visible:0, tieneAdjuntos:0, idEquipo:0, fechaEntrega:<ISO ahora>}` → responde `{"salida": <idActividadEntrega>}`.
+3. **Archivo:** `POST actividad/adjuntarEntrega?idCurso&idActividad&idActividadEntregas=<id>` multipart `file`. Los archivos se **agregan** a la entrega (no reemplazan).
+4. **Envío:** `POST Actividad/InsertaActividadEntrega` con `{idActividadEntrega:<id>, texto:<HTML>, idActividad, idCurso, visible:1, tieneAdjuntos:1, idEquipo:0, fechaEntrega:null}`.
+   - `texto` es obligatorio en el web (editor Froala). Si el alumno no modifica el comentario precargado se reenvía el `descEntrega` HTML original (conserva enlaces); si escribe otro, se manda el suyo; si no hay nada, `<p>Entrega: nombre</p>`.
+   - Respuestas reales: `adjuntarEntrega` → `[{"estado":"El archivo se adjuntó","idArchivosEntregas":…,"idActividadEntrega":…}]`; envío → `{"fechaEntrega":"…","estado":0,"salida":""}` (ese `estado:0` NO significa borrador: el `idEstado` real sigue en 1).
+- Código: `EminusApiClient.createDeliveryDraft / uploadDeliveryFile / submitDelivery`.
+- **Modo edición (UX):** si la entrega ya fue enviada (`estaEntregada`), los controles quedan ocultos tras el botón **"Editar entrega"** (`modoEdicion`). Al editar aparece un aviso (`txtEditHint`), los controles y "Cancelar edición". Tras enviar o al cambiar de actividad vuelve a solo lectura. Lógica centralizada en `actualizarControlesEntrega()`. Si no hay entrega, los controles se muestran directo.
+- **Quitar archivo:** botón "Quitar" en cada archivo de "Tu entrega" (`item_attachment.xml` → `btnDeleteAttachment`), visible solo si `puedeModificarEntrega()` (actividad abierta, individual y, si ya está entregada, en modo edición). Revalida la actividad y llama `EminusApiClient.deleteDeliveryFile`. No reenvía la entrega (igual que el web).
+
 ---
 
 ## 🛠️ 6. COMANDOS ÚTILES PARA EL ENTORNO (COPIAR Y PEGAR)
@@ -219,4 +242,9 @@ cd BodrioNus-Native
 
 # Ver si el dispositivo sigue conectado
 & "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" devices
+
+# Ver respuestas de la API (incluye los 3 pasos de entrega)
+& "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" logcat -s EMINUS_API
 ```
+
+Organización local (ignorada por git): scripts de ingeniería inversa en `tools/reverse-engineering/`, capturas en `screenshots/`.

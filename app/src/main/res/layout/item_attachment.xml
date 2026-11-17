@@ -76,6 +76,23 @@
             android:gravity="end|center_vertical"
             android:orientation="horizontal">
 
+            <!-- Quitar archivo de la entrega (solo archivos del alumno en actividades abiertas) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDeleteAttachment"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:layout_marginEnd="4dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="10dp"
+                android:text="Quitar"
+                android:textColor="@color/badge_error_text"
+                android:textSize="12sp"
+                android:visibility="gone"
+                app:icon="@drawable/ic_delete"
+                app:iconSize="16dp"
+                app:iconTint="@color/badge_error_text" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnViewOnline"
                 style="@style/Widget.Material3.Button.TonalButton"

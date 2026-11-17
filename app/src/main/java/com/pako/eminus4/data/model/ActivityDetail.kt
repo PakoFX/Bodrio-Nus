@@ -16,17 +16,31 @@ data class ActivityDetail(
     @SerializedName("estadoEntrega")         val estadoEntrega: Int = 0,
     @SerializedName("tieneAdjuntos")         val tieneAdjuntos: Int = 0,
     @SerializedName("archivosActsConTamano") val archivosDocente: List<ActivityAttachment>? = null,
-    @SerializedName("idCurso")               val idCurso: Long = 0
+    @SerializedName("idCurso")               val idCurso: Long = 0,
+    // Estado de la ACTIVIDAD según Eminus web: 2 = abierta, 4 = abierta con prórroga.
+    // Nulo si la API no lo envía (se usa entonces la regla por fecha límite).
+    @SerializedName("estadoAct")             val estadoAct: Int? = null,
+    @SerializedName("porEquipos")            val porEquipos: Int = 0
 ) {
+    val esPorEquipos: Boolean
+        get() = porEquipos == 1
+
+    /** Regla de Eminus web: solo se puede entregar si estadoAct es 2 o 4. */
+    val admiteEntregaSegunEminus: Boolean?
+        get() = estadoAct?.let { it == 2 || it == 4 }
+
     val estaEntregada: Boolean
-        get() = estadoEntrega == 2 || estadoEntrega == 3 || estado == 2 || estado == 3 || calificacion != null
+        // estado 1 = enviada sin revisar (observado en vivo: tiene fechaEntrega y no está calificada)
+        get() = estado in 1..3 || estadoEntrega in 1..3 || calificacion != null
 
     val estaCalificada: Boolean
         get() = calificacion != null
 
     val estaCerrada: Boolean
         get() {
-            if (calificacion != null) return true
+            if (calificacion != null || estado == 3) return true
+            // Si Eminus nos dice el estado real de la actividad, ese manda (respeta prórrogas)
+            admiteEntregaSegunEminus?.let { return !it }
             if (estado == 2 || estado == 3 || estadoEntrega == 2 || estadoEntrega == 3) return true
             fechaTermino?.let { iso ->
                 try {

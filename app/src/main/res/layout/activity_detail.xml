@@ -323,6 +323,56 @@
                                 app:tint="#EF4444" />
                         </LinearLayout>
 
+                        <!-- Comentario de entrega (Eminus lo exige; se precarga con el anterior si existe) -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/layoutDeliveryComment"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:hint="Comentario para el docente (opcional)"
+                            android:visibility="gone"
+                            app:boxStrokeColor="@color/brand_uv_green"
+                            app:hintTextColor="@color/brand_uv_green">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/editDeliveryComment"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textMultiLine|textCapSentences"
+                                android:maxLines="5"
+                                android:minLines="2"
+                                android:textColor="@color/text_primary"
+                                android:textSize="14sp" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Progreso del envío -->
+                        <LinearLayout
+                            android:id="@+id/layoutUploadProgress"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <ProgressBar
+                                style="?android:attr/progressBarStyleSmall"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:indeterminateTint="@color/brand_uv_green" />
+
+                            <TextView
+                                android:id="@+id/txtUploadProgress"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:layout_weight="1"
+                                android:text="Enviando entrega…"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
                         <!-- Aviso de Actividad Cerrada / Fuera de Plazo -->
                         <LinearLayout
                             android:id="@+id/layoutClosedNotice"
@@ -368,6 +418,33 @@
                             </LinearLayout>
                         </LinearLayout>
 
+                        <!-- Entrega ya enviada: los controles quedan detrás de "Editar entrega" -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnEditDelivery"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="Editar entrega"
+                            android:textColor="@color/brand_uv_green"
+                            android:visibility="gone"
+                            app:icon="@drawable/ic_edit"
+                            app:iconTint="@color/brand_uv_green"
+                            app:strokeColor="@color/brand_uv_green" />
+
+                        <!-- Aviso visible mientras se edita una entrega ya enviada -->
+                        <TextView
+                            android:id="@+id/txtEditHint"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:background="@drawable/bg_stat_pill"
+                            android:padding="10dp"
+                            android:text="✏️ Estás editando una entrega que tu docente ya puede ver. Lo que agregues o quites se aplica en Eminus."
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:visibility="gone" />
+
                         <!-- Botón selector de archivo -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnSelectFile"
@@ -388,10 +465,20 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
-                            android:backgroundTint="@color/brand_uv_green"
+                            android:backgroundTint="@color/selector_btn_primary"
                             android:enabled="false"
                             android:text="Enviar entrega a Eminus"
                             android:textColor="@color/bg_card" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnCancelEdit"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Cancelar edición"
+                            android:textColor="@color/text_secondary"
+                            android:visibility="gone" />
 
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

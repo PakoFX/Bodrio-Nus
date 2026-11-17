@@ -14,7 +14,7 @@ import com.pako.eminus4.ui.main.MainActivity
 /**
  * SplashActivity — Punto de entrada de la app.
  * Muestra un splash animado y luego redirige según el estado de sesión:
- *  - Con sesión activa  → CoursesActivity
+ *  - Con sesión guardada → MainActivity (funciona offline aunque el token haya caducado)
  *  - Sin sesión         → LoginWebViewActivity
  */
 @SuppressLint("CustomSplashScreen")
