@@ -61,8 +61,19 @@ class CredentialFullscreenActivity : AppCompatActivity() {
 
         txtLiveClock = findViewById(R.id.txtLiveClock)
 
+        cargarFondoAnimado()
         cargarDatosCredencial()
         iniciarRelojOficial()
+    }
+
+    /** GIF oficial de MiUV empaquetado en res/raw (funciona sin internet). */
+    private fun cargarFondoAnimado() {
+        findViewById<ImageView>(R.id.imgFondoAnimado).load(R.raw.credencial_fondo_animado) {
+            decoderFactory(
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) coil.decode.ImageDecoderDecoder.Factory()
+                else coil.decode.GifDecoder.Factory()
+            )
+        }
     }
 
     private fun configurarBarraEstado() {
@@ -95,25 +106,27 @@ class CredentialFullscreenActivity : AppCompatActivity() {
     }
 
     private fun cargarDatosCredencial() {
-        val cred: StudentCredential = sessionManager.getStudentCredential() ?: run {
+        // Solo la credencial de quien tiene la sesión; si no hay, se arma con SUS datos
+        val cred: StudentCredential = sessionManager.getCredencialDelUsuarioActual() ?: run {
             val profile = sessionManager.getUserProfile()
+            val matricula = sessionManager.getMatriculaSesion() ?: profile.userId.uppercase()
             StudentCredential(
-                user = profile.userId.ifBlank { "S24022198" },
-                name = profile.getNombreCompleto().ifBlank { "Francisco Xavier Viveros Salmones" },
-                program = "Ingeniería de Software",
-                region = "Coatzacoalcos",
+                user = matricula,
+                name = profile.getNombreCompleto(),
+                program = "",
+                region = profile.userCampus,
                 monthsValidity = "AGO-ENE",
                 yearValidity = "2027",
-                photo = profile.getFullAvatarUrl(),
-                qrCode = "https://dsia.uv.mx/credencial/validar?u=S24022198",
-                barCode = "S24022198"
+                photo = null,
+                qrCode = "https://dsia.uv.mx/credencial/validar?u=$matricula",
+                barCode = matricula
             )
         }
 
         findViewById<TextView>(R.id.txtFullStudentName).text = cred.getNombreFormateado()
         findViewById<TextView>(R.id.txtFullStudentId).text = cred.getMatriculaOficial()
-        findViewById<TextView>(R.id.txtProgram).text = cred.getProgramaOficial()
-        findViewById<TextView>(R.id.txtRegion).text = cred.getCampusOficial()
+        findViewById<TextView>(R.id.txtProgram).text = cred.getProgramaOficial().ifBlank { "Programa no registrado" }
+        findViewById<TextView>(R.id.txtRegion).text = cred.getCampusOficial().ifBlank { "Campus no registrado" }
         findViewById<TextView>(R.id.txtValidity).text = cred.getVigenciaTexto()
 
         // Cargar fotografía oficial institucional (MIUV, no Eminus avatar)

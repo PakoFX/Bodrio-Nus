@@ -10,8 +10,8 @@ android {
         applicationId = "com.pako.eminus4"
         minSdk = 24
         targetSdk = 35
-        versionCode = 14
-        versionName = "2.7.0"
+        versionCode = 15
+        versionName = "2.8.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -57,6 +57,7 @@ dependencies {
 
     // Carga de imágenes nativa y eficiente
     implementation(libs.coil)
+    implementation(libs.coil.gif)   // GIF animado de fondo de la credencial
 
     // WebViewAssetLoader para servir archivos locales al WebView
     implementation(libs.androidx.webkit)

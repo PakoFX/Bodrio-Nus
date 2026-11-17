@@ -27,4 +27,52 @@
         app:layout_constraintTop_toBottomOf="@id/loginProgressBar"
         app:layout_constraintBottom_toBottomOf="parent" />
 
+    <!-- Cubre el WebView mientras se sincroniza la credencial con MiUV en segundo plano -->
+    <LinearLayout
+        android:id="@+id/layoutSyncMiuv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bg_card"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_school"
+            app:tint="@color/brand_uv_green" />
+
+        <ProgressBar
+            style="?android:attr/progressBarStyle"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="20dp"
+            android:indeterminateTint="@color/brand_uv_green" />
+
+        <TextView
+            android:id="@+id/txtSyncMiuv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="Actualizando tu credencial con MiUV…"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:text="Obtenemos tu programa educativo y datos oficiales. Tu contraseña no se guarda."
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

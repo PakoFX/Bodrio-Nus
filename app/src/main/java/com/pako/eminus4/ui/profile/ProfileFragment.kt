@@ -76,6 +76,7 @@ class ProfileFragment : Fragment() {
 
         inicializarVistas(view)
         cargarPerfilDesdeCache()
+        ultimaRecargaApi = android.os.SystemClock.elapsedRealtime()
         actualizarPerfilDesdeApi()
         iniciarRelojPerfil()
     }
@@ -156,6 +157,33 @@ class ProfileFragment : Fragment() {
         clockHandler.removeCallbacks(clockRunnable)
     }
 
+    /**
+     * Recargar al volver a la pestaña o a la app (p. ej. tras renovar la sesión o sincronizar
+     * con MiUV): la vista se creó antes y no se entera sola de los datos nuevos.
+     */
+    override fun onResume() {
+        super.onResume()
+        if (!isHidden) recargarPerfil()
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) recargarPerfil()
+    }
+
+    private var ultimaRecargaApi = 0L
+
+    private fun recargarPerfil() {
+        if (view == null) return
+        cargarPerfilDesdeCache()
+        // La API como mucho cada 30 s; la caché (credencial) siempre se repinta
+        val ahora = android.os.SystemClock.elapsedRealtime()
+        if (ahora - ultimaRecargaApi > 30_000) {
+            ultimaRecargaApi = ahora
+            actualizarPerfilDesdeApi()
+        }
+    }
+
     private fun cargarPerfilDesdeCache() {
         val cached = sessionManager.getUserProfile()
         mostrarPerfil(cached)
@@ -179,7 +207,8 @@ class ProfileFragment : Fragment() {
                     tokenExpiration = sessionManager.getUserProfile().tokenExpiration
                 )
             }.onFailure { _ ->
-                // Fallback a los datos de caché ya mostrados
+                // Fallback a los datos de caché ya mostrados; permitir reintento al volver
+                ultimaRecargaApi = 0L
             }
         }
     }
@@ -195,7 +224,7 @@ class ProfileFragment : Fragment() {
         // Si la credencial guardada es de otro usuario, ignorarla completamente
         val cred = if (credEsDelUsuarioActual) credGuardada else null
 
-        val nombre = cred?.getNombreFormateado() ?: profile.getNombreCompleto()
+        val nombre = cred?.getNombreFormateado()?.takeIf { it.isNotBlank() } ?: profile.getNombreCompleto()
         val matricula = matriculaSession
         // Campus del perfil de sesión actual (no de credencial de otro usuario)
         val campusSession = profile.userCampus.ifBlank { cred?.getCampusOficial() ?: "" }
@@ -217,19 +246,24 @@ class ProfileFragment : Fragment() {
             cred.yearValidity != anioCorrect ||
             !credEsDelUsuarioActual
         if (necesitaActualizar && matricula.isNotBlank()) {
-            sessionManager.saveStudentCredential(
-                com.pako.eminus4.data.model.StudentCredential(
-                    user = matricula,
-                    name = nombre,
-                    program = programa,
-                    region = campus,
-                    monthsValidity = vigenciaCorrecta,
-                    yearValidity = anioCorrect,
-                    photo = cred?.photo ?: profile.getFullAvatarUrl(),
-                    qrCode = cred?.qrCode ?: "https://dsia.uv.mx/credencial/validar?u=$matricula",
-                    barCode = cred?.barCode ?: matricula
-                )
+            // Conservar lo que ya tenga la credencial (p. ej. datos de MiUV); solo completar lo faltante
+            val actualizada = cred?.copy(
+                name = nombre,
+                region = campus,
+                monthsValidity = vigenciaCorrecta,
+                yearValidity = anioCorrect
+            ) ?: com.pako.eminus4.data.model.StudentCredential(
+                user = matricula,
+                name = nombre,
+                program = programa,
+                region = campus,
+                monthsValidity = vigenciaCorrecta,
+                yearValidity = anioCorrect,
+                photo = null,   // nunca el avatar casual de Eminus
+                qrCode = "https://dsia.uv.mx/credencial/validar?u=$matricula",
+                barCode = matricula
             )
+            sessionManager.saveStudentCredential(actualizada)
         }
 
         txtEmailUv.text = if (profile.userEmail.isNotBlank()) profile.userEmail else "No disponible"
@@ -241,7 +275,8 @@ class ProfileFragment : Fragment() {
             layoutAlternateEmail.visibility = View.GONE
         }
 
-        // Foto de perfil: usar avatar de Eminus (casual) en la tarjeta resumen
+        // Tarjeta del Perfil: el avatar que la persona eligió en Eminus.
+        // La foto oficial de MiUV es SOLO para la credencial (CredentialFullscreenActivity).
         val avatarUrl = profile.getFullAvatarUrl()
         if (!avatarUrl.isNullOrBlank()) {
             imgAvatar.load(avatarUrl) {

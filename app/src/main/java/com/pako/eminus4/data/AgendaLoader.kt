@@ -28,6 +28,9 @@ class AgendaLoader(
         /** Última agenda cargada en esta sesión: permite pintar al instante al cambiar de pantalla. */
         @Volatile var ultimo: Resultado? = null
             private set
+
+        /** Al cambiar de cuenta, no mostrar la agenda de la persona anterior. */
+        fun limpiar() { ultimo = null }
     }
 
     fun cargar(onResultFinal: (Resultado) -> Unit) {

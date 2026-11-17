@@ -91,7 +91,7 @@
                             android:id="@+id/txtStudentName"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Francisco Xavier Viveros Salmones"
+                            tools:text="Francisco Xavier Viveros Salmones"
                             android:textColor="@color/text_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
@@ -101,7 +101,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="S24022198"
+                            tools:text="S24022198"
                             android:textColor="@color/brand_uv_green"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -111,7 +111,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="Ingeniería de Software"
+                            tools:text="Ingeniería de Software"
                             android:textColor="@color/text_secondary"
                             android:textSize="13sp" />
 

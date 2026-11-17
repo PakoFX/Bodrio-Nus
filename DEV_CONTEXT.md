@@ -20,7 +20,7 @@
 6. **ACTIVIDADES CERRADAS O CALIFICADAS NO ADMITEN ENTREGAS:** Si la actividad ya tiene calificación o pasó su `fechaTermino`, los botones de selección y envío de archivos DEBEN ocultarse y mostrarse el aviso con candado `🔒`.
 7. **FEEDBACK DEL PROFESOR CON IMÁGENES/STICKERS:** Eminus usa Froala con imágenes públicas en `https://eminus.uv.mx/eminusapi/froala/...`. Deben cargarse mediante `webTeacherFeedback` transparente con `loadDataWithBaseURL("https://eminus.uv.mx", ...)`.
 8. **IDIOMA DE LA UI:** Todo el texto visible para el usuario debe estar en **Español**.
-9. **VERSIÓN DE LA APP:** Con cada sesión de trabajo que añada funcionalidad real, incrementar `versionCode` (+1) y `versionName` (semver) en `app/build.gradle.kts`. Esquema: `MAJOR.MINOR.PATCH` — MINOR para features nuevas, PATCH para bugfixes. **Versión actual: 2.7.0 (versionCode 14).**
+9. **VERSIÓN DE LA APP:** Con cada sesión de trabajo que añada funcionalidad real, incrementar `versionCode` (+1) y `versionName` (semver) en `app/build.gradle.kts`. Esquema: `MAJOR.MINOR.PATCH` — MINOR para features nuevas, PATCH para bugfixes. **Versión actual: 2.8.0 (versionCode 15).**
 10. **MODO SIN CONEXIÓN Y RESILIENCIA DE SESIÓN (NO EXPULSIÓN ABRUPTA):**
     - Los errores 401 / caducidad de token **NUNCA DEBEN EXPULSAR AL USUARIO** a la pantalla de login ni borrar `SessionManager`.
     - `SplashActivity` permite entrar a `MainActivity` si hay datos en el teléfono (`hasSession()`), garantizando acceso offline a la credencial digital y cursos guardados.
@@ -61,6 +61,17 @@
   - Cada `EstadoAlumno` trae su `icono`. Para agregar un ícono nuevo: bajar el SVG de ese paquete y convertirlo igual (un `<path>` por figura, `android:tint="?attr/colorControlNormal"`).
 - ✅ **Accesos rápidos de Avisos:** Actividades / Mensajes / Foros / Exámenes fijos en el encabezado (siempre visibles) con contador rojo (`bg_badge_count`): por hacer, mensajes sin leer, foros con aportes nuevos, exámenes disponibles.
 - ✅ **`ActivityDetail.estado` también es `Int?`** (mismo motivo que en `Activity`): antes una actividad nunca tocada aparecía como "Borrador" en el detalle.
+- ✅ **Credencial con datos oficiales de MiUV (v2.8.0) — `data/MiuvSync.kt`:**
+  - Eminus NO expone la carrera (`Usuario/getUsuario` solo trae `idDependencia`). Está en MiUV `dsiapes.uv.mx/MIUV/portales/estudiantes/szigral.aspx` (`span#content_wucDatosGralAlum1_lblProg` + bloques `#div-iAcademica p` "Etiqueta: valor").
+  - MiUV es un **login aparte** (ASP.NET Forms) con el mismo usuario/contraseña. El JWT de Eminus no sirve ahí.
+  - Flujo: en `LoginWebViewActivity` un script captura usuario/contraseña al enviar el formulario (**solo en memoria**). Tras capturar el token de Eminus, `MiuvSync` usa el mismo WebView (oculto tras `layoutSyncMiuv`): `login.aspx` **sin `ReturnUrl`** (con él MiUV redirige a uv.mx) → llena y envía → `smutiles.aspx` → enlace al portal → `szigral.aspx` → extrae datos → descarga la foto con las cookies de MiUV. Límite 45 s; si falla, se entra a la app igual.
+  - **La contraseña se sobrescribe con ceros justo después de llenar el formulario** y otra vez al terminar/`onDestroy`. Nunca se guarda ni se loguea. Al log (`MIUV_SYNC`) solo van NOMBRES de campos.
+  - Solo se guardan programa, campus, facultad, área, nivel y foto (`SessionManager.aplicarDatosMiuv`). La página también trae CURP, NSS, dirección, etc.: **no se guardan**.
+  - Si Eminus aún no reportó `userId` al capturar el token, se usa la matrícula escrita en el login como respaldo.
+  - Foto: `files/credencial/foto_<MATRICULA>_<ts>.jpg`, un archivo por persona y sincronización (evita que la caché de Coil muestre la foto de otra cuenta).
+  - **Dos fotos distintas:** la tarjeta del Perfil usa el **avatar de Eminus** (el que elige la persona); la **foto oficial de MiUV** va SOLO en la credencial. `StudentCredential.esAvatarDeEminus()` compara contra `http…eminus.uv.mx`: NO buscar "eminus" a secas, porque la ruta local `com.pako.eminus4` también lo contiene.
+- ✅ **Credencial por usuario:** `SessionManager.getCredencialDelUsuarioActual()` (pantalla completa y Perfil) y `descartarCredencialAjena()` al iniciar sesión (borra credencial y fotos de la persona anterior). Sin datos personales por defecto en código/layout; `foto_credencial_oficial.png` solo para su dueño (`StudentCredential.MATRICULA_FOTO_EMPAQUETADA`, temporal).
+- ✅ **Fondo animado oficial:** `res/raw/credencial_fondo_animado.gif` (de MiUV `Images/credencial/CRED_GIF_01.gif`, requiere sesión para bajarlo) cargado con `coil-gif` en `imgFondoAnimado`.
 - ✅ **"Mis actividades" (`AllActivitiesActivity`, v2.7.0):** pestañas Por hacer / Esperando calificación / Calificadas / No entregadas con conteo. "Por hacer" ordenada por fecha; las demás agrupadas por curso (`item_section_header.xml`). Abre en la pestaña indicada con `AllActivitiesActivity.start(ctx, Pestana.X)`.
 - ✅ **Módulo Avisos — pantallas secundarias:**
   - **Exámenes (`ExamsActivity`):** Lista todos los exámenes de todos los cursos que tengan exámenes (`isActivo() || examenes > 0`). Filtros: Todos / Disponibles / Calificados. Click muestra dialog informativo "Accede desde Eminus Web".
