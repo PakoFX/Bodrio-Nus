@@ -1,318 +1,442 @@
 package com.pako.eminus4.ui.notifications
 
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
+import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
 import android.widget.TextView
-import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import androidx.core.content.ContextCompat
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.pako.eminus4.R
 import com.pako.eminus4.core.SessionManager
+import com.pako.eminus4.data.AgendaLoader
 import com.pako.eminus4.data.api.EminusApiClient
-import com.pako.eminus4.data.model.Activity
 import com.pako.eminus4.data.model.Course
-import com.pako.eminus4.data.model.NotificationSummary
+import com.pako.eminus4.data.model.CourseActivityItem
+import com.pako.eminus4.data.model.EstadoAlumno
+import com.pako.eminus4.data.model.ExamItem
+import com.pako.eminus4.data.model.ForumItem
+import com.pako.eminus4.data.model.MessageItem
+import com.pako.eminus4.ui.courses.ActividadCardBinder
 import com.pako.eminus4.ui.courses.AllActivitiesActivity
 import com.pako.eminus4.ui.exams.ExamsActivity
 import com.pako.eminus4.ui.forums.ForumsActivity
+import com.pako.eminus4.ui.main.MainActivity
+import com.pako.eminus4.ui.messages.MessageDetailActivity
 import com.pako.eminus4.ui.messages.MessagesActivity
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.concurrent.atomic.AtomicInteger
+import com.pako.eminus4.util.Plazos
+import java.util.concurrent.TimeUnit
 
+/**
+ * Pestaña "Avisos" como agenda:
+ *  1. Resumen (cuántas tienes por hacer y qué vence pronto).
+ *  2. Por hacer: las actividades mismas, ordenadas por fecha límite.
+ *  3. Novedades: calificaciones recientes, mensajes sin leer, exámenes disponibles, foros con aportes.
+ *  Las secciones vacías no se muestran.
+ */
 class NotificationsFragment : Fragment() {
+
+    companion object {
+        private const val MAX_POR_HACER = 5
+        private const val MAX_FILAS = 3
+        private val DIAS_CALIFICACION_RECIENTE = TimeUnit.DAYS.toMillis(14)
+        private val HORAS_URGENTE = TimeUnit.HOURS.toMillis(72)
+        private const val RECARGA_MIN_MS = 60_000L
+    }
 
     private lateinit var sessionManager: SessionManager
     private lateinit var apiClient: EminusApiClient
+    private lateinit var loader: AgendaLoader
 
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
-    private lateinit var cardStatusBanner: MaterialCardView
-    private lateinit var txtStatusEmoji: TextView
-    private lateinit var txtStatusTitle: TextView
-    private lateinit var txtStatusDesc: TextView
+    private lateinit var txtHoy: TextView
+    private lateinit var cardResumen: MaterialCardView
+    private lateinit var imgResumen: ImageView
+    private lateinit var txtResumenTitulo: TextView
+    private lateinit var txtResumenDetalle: TextView
 
-    private lateinit var txtBadgeActNuevas: TextView
-    private lateinit var txtActividadesActivas: TextView
+    private lateinit var seccionPorHacer: View
+    private lateinit var txtTituloPorHacer: TextView
+    private lateinit var layoutPorHacer: LinearLayout
+    private lateinit var btnVerMasPorHacer: MaterialButton
 
-    private lateinit var txtBadgeExNuevos: TextView
-    private lateinit var txtExamenesActivos: TextView
+    private lateinit var seccionCalificaciones: View
+    private lateinit var layoutCalificaciones: LinearLayout
+    private lateinit var seccionMensajes: View
+    private lateinit var txtTituloMensajes: TextView
+    private lateinit var layoutMensajes: LinearLayout
+    private lateinit var seccionExamenes: View
+    private lateinit var layoutExamenes: LinearLayout
+    private lateinit var seccionForos: View
+    private lateinit var layoutForos: LinearLayout
+    private lateinit var cardEsperando: MaterialCardView
+    private lateinit var txtEsperando: TextView
+    private lateinit var badgeAccesoActividades: TextView
+    private lateinit var badgeAccesoMensajes: TextView
+    private lateinit var badgeAccesoForos: TextView
+    private lateinit var badgeAccesoExamenes: TextView
 
-    private lateinit var txtBadgeFrNuevos: TextView
-    private lateinit var txtForosActivos: TextView
+    /** Evita pintar resultados viejos si se lanzó otra carga mientras tanto. */
+    private var generacion = 0
+    private var cargando = false
+    private var ultimaCarga = 0L
 
-    private lateinit var txtBadgeMsjNuevos: TextView
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_notifications, container, false)
-    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
+        inflater.inflate(R.layout.fragment_notifications, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         sessionManager = SessionManager(requireContext())
         apiClient = EminusApiClient(sessionManager)
-
+        loader = AgendaLoader(sessionManager, apiClient)
         inicializarVistas(view)
-        cargarNotificaciones()
     }
 
     override fun onResume() {
         super.onResume()
-        cargarNotificaciones()
+        // Al volver de un detalle (p. ej. tras entregar) o en la primera carga
+        if (!isHidden || ultimaCarga == 0L) cargar()
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden && SystemClock.elapsedRealtime() - ultimaCarga > RECARGA_MIN_MS) cargar()
     }
 
     private fun inicializarVistas(view: View) {
         val appBarLayout = view.findViewById<View>(R.id.appBarLayout)
-        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(appBarLayout) { v, insets ->
-            val systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
-            val bannerVisible = (activity as? com.pako.eminus4.ui.main.MainActivity)?.isBannerVisible() == true
+        ViewCompat.setOnApplyWindowInsetsListener(appBarLayout) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val bannerVisible = (activity as? MainActivity)?.isBannerVisible() == true
             v.setPadding(0, if (bannerVisible) 0 else systemBars.top, 0, 0)
             insets
         }
 
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout)
-        cardStatusBanner = view.findViewById(R.id.cardStatusBanner)
-        txtStatusEmoji = view.findViewById(R.id.txtStatusEmoji)
-        txtStatusTitle = view.findViewById(R.id.txtStatusTitle)
-        txtStatusDesc = view.findViewById(R.id.txtStatusDesc)
+        txtHoy = view.findViewById(R.id.txtHoy)
+        cardResumen = view.findViewById(R.id.cardResumen)
+        imgResumen = view.findViewById(R.id.imgResumen)
+        txtResumenTitulo = view.findViewById(R.id.txtResumenTitulo)
+        txtResumenDetalle = view.findViewById(R.id.txtResumenDetalle)
 
-        txtBadgeActNuevas = view.findViewById(R.id.txtBadgeActNuevas)
-        txtActividadesActivas = view.findViewById(R.id.txtActividadesActivas)
+        seccionPorHacer = view.findViewById(R.id.seccionPorHacer)
+        txtTituloPorHacer = view.findViewById(R.id.txtTituloPorHacer)
+        layoutPorHacer = view.findViewById(R.id.layoutPorHacer)
+        btnVerMasPorHacer = view.findViewById(R.id.btnVerMasPorHacer)
 
-        txtBadgeExNuevos = view.findViewById(R.id.txtBadgeExNuevos)
-        txtExamenesActivos = view.findViewById(R.id.txtExamenesActivos)
+        seccionCalificaciones = view.findViewById(R.id.seccionCalificaciones)
+        layoutCalificaciones = view.findViewById(R.id.layoutCalificaciones)
+        seccionMensajes = view.findViewById(R.id.seccionMensajes)
+        txtTituloMensajes = view.findViewById(R.id.txtTituloMensajes)
+        layoutMensajes = view.findViewById(R.id.layoutMensajes)
+        seccionExamenes = view.findViewById(R.id.seccionExamenes)
+        layoutExamenes = view.findViewById(R.id.layoutExamenes)
+        seccionForos = view.findViewById(R.id.seccionForos)
+        layoutForos = view.findViewById(R.id.layoutForos)
+        cardEsperando = view.findViewById(R.id.cardEsperando)
+        txtEsperando = view.findViewById(R.id.txtEsperando)
+        badgeAccesoActividades = view.findViewById(R.id.badgeAccesoActividades)
+        badgeAccesoMensajes = view.findViewById(R.id.badgeAccesoMensajes)
+        badgeAccesoForos = view.findViewById(R.id.badgeAccesoForos)
+        badgeAccesoExamenes = view.findViewById(R.id.badgeAccesoExamenes)
 
-        txtBadgeFrNuevos = view.findViewById(R.id.txtBadgeFrNuevos)
-        txtForosActivos = view.findViewById(R.id.txtForosActivos)
+        txtHoy.text = Plazos.hoyLargo()
 
-        txtBadgeMsjNuevos = view.findViewById(R.id.txtBadgeMsjNuevos)
-
-        val cardActividades = view.findViewById<MaterialCardView>(R.id.cardActividades)
-        val cardExamenes = view.findViewById<MaterialCardView>(R.id.cardExamenes)
-        val cardForos = view.findViewById<MaterialCardView>(R.id.cardForos)
-        val cardMensajeria = view.findViewById<MaterialCardView>(R.id.cardMensajeria)
-
-        cardActividades.setOnClickListener {
+        btnVerMasPorHacer.setOnClickListener {
+            AllActivitiesActivity.start(requireContext(), AllActivitiesActivity.Pestana.POR_HACER)
+        }
+        cardEsperando.setOnClickListener {
+            AllActivitiesActivity.start(requireContext(), AllActivitiesActivity.Pestana.ESPERANDO)
+        }
+        view.findViewById<View>(R.id.accesoActividades).setOnClickListener {
             AllActivitiesActivity.start(requireContext())
         }
+        view.findViewById<View>(R.id.accesoMensajes).setOnClickListener { MessagesActivity.start(requireContext()) }
+        view.findViewById<View>(R.id.accesoForos).setOnClickListener { ForumsActivity.start(requireContext()) }
+        view.findViewById<View>(R.id.accesoExamenes).setOnClickListener { ExamsActivity.start(requireContext()) }
 
-        cardExamenes.setOnClickListener {
-            ExamsActivity.start(requireContext())
-        }
-
-        cardForos.setOnClickListener {
-            ForumsActivity.start(requireContext())
-        }
-
-        cardMensajeria.setOnClickListener {
-            MessagesActivity.start(requireContext())
-        }
-
-        swipeRefreshLayout.setColorSchemeColors(requireContext().getColor(android.R.color.holo_green_dark))
-        swipeRefreshLayout.setOnRefreshListener {
-            cargarNotificaciones()
-        }
+        swipeRefreshLayout.setColorSchemeColors(ContextCompat.getColor(requireContext(), R.color.brand_uv_green))
+        swipeRefreshLayout.setOnRefreshListener { cargar(forzar = true) }
     }
 
-    private fun cargarNotificaciones() {
+    // ===================== CARGA =====================
+
+    private fun cargar(forzar: Boolean = false) {
+        if (cargando && !forzar) return
+        cargando = true
+        val gen = ++generacion
         swipeRefreshLayout.isRefreshing = true
+        txtHoy.text = Plazos.hoyLargo()
 
-        // 1. Obtener cursos activos para calcular conteos reales
-        val cachedCourses = sessionManager.getCachedCourses()
-        if (cachedCourses.isNotEmpty()) {
-            calcularYMostrarConCursos(cachedCourses)
-        } else {
-            apiClient.getAllCourses { result ->
-                if (!isAdded) return@getAllCourses
-                result.onSuccess { courses ->
-                    sessionManager.saveCachedCourses(courses)
-                    calcularYMostrarConCursos(courses)
-                }.onFailure {
-                    consultarEndpointNotificacionesFallback()
-                }
-            }
-        }
-    }
-
-    private fun calcularYMostrarConCursos(courses: List<Course>) {
-        val cursosActivos = courses.filter { it.isActivo() }
-        val totalForos = cursosActivos.sumOf { it.foros }
-        val totalExamenes = cursosActivos.sumOf { it.examenes }
-
-        if (cursosActivos.isEmpty()) {
-            consultarEndpointNotificacionesFallback()
-            return
-        }
-
-        val pending = AtomicInteger(cursosActivos.size)
-        var actividadesActivasCount = 0
-
-        for (c in cursosActivos) {
-            apiClient.getActivities(c.idCurso) { actResult ->
-                if (!isAdded) return@getActivities
-
-                actResult.onSuccess { activities ->
-                    val activas = activities.count { esActividadActiva(it) }
-                    synchronized(this) {
-                        actividadesActivasCount += activas
-                    }
-                }
-
-                if (pending.decrementAndGet() == 0) {
-                    // Consultar mensajes sin leer
-                    consultarMensajesYMostrarTodo(actividadesActivasCount, totalForos, totalExamenes)
-                }
-            }
-        }
-    }
-
-    private fun consultarMensajesYMostrarTodo(actividades: Int, foros: Int, examenes: Int) {
-        apiClient.getMessages(folderId = 1) { msgResult ->
-            if (!isAdded) return@getMessages
+        loader.cargar { r ->
+            if (!vigente(gen)) return@cargar
+            cargando = false
+            ultimaCarga = SystemClock.elapsedRealtime()
             swipeRefreshLayout.isRefreshing = false
 
-            val mensajesNoLeidos = msgResult.getOrNull()?.count { it.esNoLeido } ?: 0
+            pintarAgenda(r)
+            cargarNovedades(gen, r.cursos)
+        }
+    }
 
-            renderizarDatosReales(
-                actividades = actividades,
-                foros = foros,
-                examenes = examenes,
-                mensajesSinLeer = mensajesNoLeidos
+    private fun vigente(gen: Int) = gen == generacion && isAdded && view != null
+
+    private fun cargarNovedades(gen: Int, cursos: List<Course>) {
+        apiClient.getMessages(folderId = 1) { res ->
+            if (!vigente(gen)) return@getMessages
+            pintarMensajes(res.getOrNull()?.filter { it.esNoLeido } ?: emptyList())
+        }
+
+        // Exámenes: solo cursos que los tienen
+        val conExamenes = cursos.filter { it.examenes > 0 }
+        val examenes = mutableListOf<ExamItem>()
+        var pendExamenes = conExamenes.size
+        if (pendExamenes == 0) pintarExamenes(emptyList())
+        for (c in conExamenes) {
+            apiClient.getExams(c.idCurso) { res ->
+                if (!vigente(gen)) return@getExams
+                res.getOrNull()?.forEach {
+                    it.idCurso = c.idCurso
+                    it.nombreCurso = c.getNombreLimpio()
+                    examenes.add(it)
+                }
+                if (--pendExamenes == 0) pintarExamenes(examenes)
+            }
+        }
+
+        // Foros: solo cursos que los tienen
+        val conForos = cursos.filter { it.foros > 0 }
+        val foros = mutableListOf<ForumItem>()
+        var pendForos = conForos.size
+        if (pendForos == 0) pintarForos(emptyList())
+        for (c in conForos) {
+            apiClient.getForums(c.idCurso) { res ->
+                if (!vigente(gen)) return@getForums
+                res.getOrNull()?.forEach {
+                    it.idCurso = c.idCurso
+                    it.nombreCurso = c.getNombreLimpio()
+                    foros.add(it)
+                }
+                if (--pendForos == 0) pintarForos(foros)
+            }
+        }
+    }
+
+    // ===================== AGENDA =====================
+
+    private fun pintarAgenda(r: AgendaLoader.Resultado) {
+        val ctx = requireContext()
+        val ahora = System.currentTimeMillis()
+        val porHacer = r.actividades
+            .filter { it.activity.estadoAlumno.esPendiente }
+            .sortedBy { it.activity.terminoMillis ?: Long.MAX_VALUE }
+        val urgentes = porHacer.count { a ->
+            a.activity.terminoMillis?.let { it - ahora in 0..HORAS_URGENTE } == true
+        }
+        val enEquipo = porHacer.count { it.activity.esPorEquipos }
+        val esperando = r.actividades.count { it.activity.estadoAlumno == EstadoAlumno.ESPERANDO }
+
+        // ---- Resumen ----
+        val sinDatos = r.cursos.isEmpty() && r.actividades.isEmpty()
+        when {
+            sinDatos && (r.sesionExpirada || r.desdeCache) -> {
+                ponerIconoResumen(R.drawable.ic_cloud_off, R.color.text_secondary)
+                txtResumenTitulo.text = "No se pudo cargar tu agenda"
+                txtResumenDetalle.text = if (r.sesionExpirada)
+                    "Tu sesión de Eminus caducó. Renuévala desde el aviso superior."
+                else "Sin conexión con Eminus. Desliza hacia abajo para reintentar."
+                cardResumen.strokeColor = ContextCompat.getColor(ctx, R.color.stroke_ok)
+            }
+            porHacer.isEmpty() -> {
+                ponerIconoResumen(R.drawable.ic_task_alt, R.color.badge_success_text)
+                txtResumenTitulo.text = "Estás al corriente"
+                txtResumenDetalle.text = "No tienes entregas pendientes en tus cursos activos."
+                cardResumen.strokeColor = ContextCompat.getColor(ctx, R.color.badge_success_text)
+            }
+            else -> {
+                val n = porHacer.size
+                if (urgentes > 0) ponerIconoResumen(R.drawable.ic_local_fire_department, R.color.badge_error_text)
+                else ponerIconoResumen(R.drawable.ic_pending_actions, R.color.badge_warning_text)
+                txtResumenTitulo.text = "Tienes $n por hacer"
+                val partes = mutableListOf<String>()
+                if (urgentes > 0) {
+                    partes += "$urgentes vence${if (urgentes > 1) "n" else ""} en los próximos 3 días"
+                } else {
+                    val prox = porHacer.first()
+                    partes += "Lo próximo: ${prox.activity.nombre} (${Plazos.plazo(prox.activity.terminoMillis).texto.replaceFirstChar { it.lowercase() }})"
+                }
+                if (enEquipo > 0) partes += "$enEquipo en equipo"
+                txtResumenDetalle.text = partes.joinToString(" · ")
+                cardResumen.strokeColor = ContextCompat.getColor(
+                    ctx, if (urgentes > 0) R.color.badge_error_text else R.color.badge_warning_text
+                )
+            }
+        }
+        if (!sinDatos && (r.sesionExpirada || r.cursosConError > 0 || r.desdeCache)) {
+            txtResumenDetalle.append(
+                if (r.sesionExpirada) "\nSesión caducada: puede faltar información."
+                else "\nSin conexión: puede faltar información."
             )
         }
+
+        ponerContador(badgeAccesoActividades, porHacer.size)
+
+        // ---- Por hacer ----
+        layoutPorHacer.removeAllViews()
+        seccionPorHacer.visibility = if (porHacer.isEmpty()) View.GONE else View.VISIBLE
+        txtTituloPorHacer.text = "POR HACER · ${porHacer.size}"
+        val inflater = LayoutInflater.from(ctx)
+        porHacer.take(MAX_POR_HACER).forEach { item ->
+            val card = inflater.inflate(R.layout.item_all_activity, layoutPorHacer, false)
+            ActividadCardBinder.bind(card, item) { ActividadCardBinder.abrirDetalle(ctx, it) }
+            layoutPorHacer.addView(card)
+        }
+        if (porHacer.size > MAX_POR_HACER) {
+            btnVerMasPorHacer.visibility = View.VISIBLE
+            btnVerMasPorHacer.text = "Ver las ${porHacer.size} pendientes"
+        } else {
+            btnVerMasPorHacer.visibility = View.GONE
+        }
+
+        // ---- Calificaciones recientes ----
+        val recientes = r.actividades
+            .filter { it.activity.calificacion != null }
+            .mapNotNull { a -> Plazos.parseIso(a.activity.fechaRevision)?.let { a to it } }
+            .filter { ahora - it.second <= DIAS_CALIFICACION_RECIENTE }
+            .sortedByDescending { it.second }
+            .take(MAX_FILAS)
+        layoutCalificaciones.removeAllViews()
+        seccionCalificaciones.visibility = if (recientes.isEmpty()) View.GONE else View.VISIBLE
+        recientes.forEach { (item, revision) ->
+            val act = item.activity
+            val cal = act.calificacion ?: 0.0
+            val max = act.calificacionMax
+            agregarFila(
+                layoutCalificaciones, R.drawable.ic_star, R.color.badge_success_text, act.nombre,
+                "${Plazos.haceCuanto(revision).replaceFirstChar { it.uppercase() }} · ${item.courseName}",
+                "${ActividadCardBinder.formatoNota(cal)}/${ActividadCardBinder.formatoNota(max)}",
+                ContextCompat.getColor(ctx, if (cal >= max * 0.6) R.color.badge_success_text else R.color.badge_error_text)
+            ) { ActividadCardBinder.abrirDetalle(ctx, item) }
+        }
+
+        // ---- Esperando calificación ----
+        if (esperando > 0) {
+            cardEsperando.visibility = View.VISIBLE
+            txtEsperando.text = if (esperando == 1) "1 entrega esperando calificación"
+                                else "$esperando entregas esperando calificación"
+        } else {
+            cardEsperando.visibility = View.GONE
+        }
     }
 
-    private fun consultarEndpointNotificacionesFallback() {
-        apiClient.getNotifications { result ->
-            if (!isAdded) return@getNotifications
-            swipeRefreshLayout.isRefreshing = false
+    // ===================== NOVEDADES =====================
 
-            result.onSuccess { summary ->
-                mostrarNotificaciones(summary)
-            }.onFailure { error ->
-                Toast.makeText(requireContext(), "Error al cargar notificaciones: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
+    private fun pintarMensajes(noLeidos: List<MessageItem>) {
+        layoutMensajes.removeAllViews()
+        seccionMensajes.visibility = if (noLeidos.isEmpty()) View.GONE else View.VISIBLE
+        txtTituloMensajes.text = "MENSAJES SIN LEER · ${noLeidos.size}"
+        ponerContador(badgeAccesoMensajes, noLeidos.size)
+
+        val ctx = requireContext()
+        noLeidos.take(MAX_FILAS).forEach { m ->
+            val cuando = Plazos.haceCuanto(Plazos.parseIso(m.fechaEnviado))
+            agregarFila(
+                layoutMensajes, R.drawable.ic_mail, R.color.badge_info_text, m.titulo?.takeIf { it.isNotBlank() } ?: "(Sin asunto)",
+                listOf(m.getNombreRemitente(), cuando).filter { it.isNotBlank() }.joinToString(" · "),
+                null, null
+            ) { MessageDetailActivity.start(ctx, m.idMensaje) }
+        }
+        if (noLeidos.size > MAX_FILAS) {
+            agregarFila(layoutMensajes, R.drawable.ic_inbox, R.color.text_secondary, "Ver los ${noLeidos.size} mensajes sin leer", "", null, null) {
+                MessagesActivity.start(ctx)
             }
         }
     }
 
-    private fun esActividadActiva(act: Activity): Boolean {
-        val titulo = act.titulo ?: act.nombreRaw ?: ""
-        if (titulo.isBlank()) return false
-        if (act.estaEntregada || act.estaCalificada) return false
+    private fun pintarExamenes(examenes: List<ExamItem>) {
+        val ahora = System.currentTimeMillis()
+        val disponibles = examenes
+            .filter { !it.estaCalificado && !it.estaVencido }
+            .filter { (Plazos.parseIso(it.fechaInicio) ?: 0L) <= ahora }
+            .sortedBy { Plazos.parseIso(it.fechaTermino) ?: Long.MAX_VALUE }
+        ponerContador(badgeAccesoExamenes, disponibles.size)
+        layoutExamenes.removeAllViews()
+        seccionExamenes.visibility = if (disponibles.isEmpty()) View.GONE else View.VISIBLE
 
-        val fechaTermino = act.fechaTermino ?: return true
-        return try {
-            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-            val date = sdf.parse(fechaTermino.substring(0, 19))
-            date != null && date.after(Date())
-        } catch (_: Exception) {
-            true
+        val ctx = requireContext()
+        disponibles.take(MAX_FILAS).forEach { ex ->
+            val p = Plazos.plazo(Plazos.parseIso(ex.fechaTermino))
+            agregarFila(
+                layoutExamenes, R.drawable.ic_quiz, R.color.brand_uv_green, ex.titulo, "${ex.nombreCurso} · ${p.texto}",
+                null, null
+            ) { ExamsActivity.start(ctx) }
         }
     }
 
-    private fun renderizarDatosReales(
-        actividades: Int,
-        foros: Int,
-        examenes: Int,
-        mensajesSinLeer: Int
+    private fun pintarForos(foros: List<ForumItem>) {
+        val conNovedades = foros.filter { it.nuevosComentarios > 0 }
+            .sortedByDescending { it.nuevosComentarios }
+        ponerContador(badgeAccesoForos, conNovedades.size)
+        layoutForos.removeAllViews()
+        seccionForos.visibility = if (conNovedades.isEmpty()) View.GONE else View.VISIBLE
+
+        val ctx = requireContext()
+        conNovedades.take(MAX_FILAS).forEach { f ->
+            agregarFila(
+                layoutForos, R.drawable.ic_forum, R.color.badge_info_text, f.titulo, f.nombreCurso,
+                "${f.nuevosComentarios} nuevo${if (f.nuevosComentarios == 1) "" else "s"}",
+                ContextCompat.getColor(ctx, R.color.badge_info_text)
+            ) { ForumsActivity.start(ctx) }
+        }
+    }
+
+    private fun agregarFila(
+        contenedor: LinearLayout,
+        @DrawableRes icono: Int,
+        @ColorRes colorIcono: Int,
+        titulo: String,
+        subtitulo: String,
+        valor: String?,
+        colorValor: Int?,
+        onClick: () -> Unit
     ) {
-        val totalAlertas = actividades + mensajesSinLeer + examenes
-
-        // Banner de estado general
-        if (totalAlertas > 0) {
-            txtStatusEmoji.text = "⚡"
-            txtStatusTitle.text = "$totalAlertas pendiente${if (totalAlertas > 1) "s" else ""} por atender"
-            txtStatusDesc.text = if (actividades > 0) {
-                "Tienes $actividades tarea${if (actividades > 1) "s" else ""} activa${if (actividades > 1) "s" else ""} por entregar."
-            } else {
-                "Revisa tus evaluaciones o mensajes sin leer."
-            }
-            cardStatusBanner.strokeColor = ContextCompat.getColor(requireContext(), R.color.stroke_alert)
-        } else {
-            txtStatusEmoji.text = "✨"
-            txtStatusTitle.text = "Al corriente"
-            txtStatusDesc.text = "No tienes avisos urgentes sin revisar en tus cursos."
-            cardStatusBanner.strokeColor = ContextCompat.getColor(requireContext(), R.color.stroke_ok)
+        val fila = LayoutInflater.from(requireContext()).inflate(R.layout.item_aviso_fila, contenedor, false)
+        fila.findViewById<ImageView>(R.id.imgFilaIcono).apply {
+            setImageResource(icono)
+            imageTintList = ContextCompat.getColorStateList(requireContext(), colorIcono)
         }
-
-        // Actividades
-        txtActividadesActivas.text = "$actividades activa${if (actividades == 1) "" else "s"}"
-        if (actividades > 0) {
-            txtBadgeActNuevas.text = "$actividades pendiente${if (actividades == 1) "" else "s"}"
-            txtBadgeActNuevas.visibility = View.VISIBLE
-        } else {
-            txtBadgeActNuevas.visibility = View.GONE
+        fila.findViewById<TextView>(R.id.txtFilaTitulo).text = titulo
+        fila.findViewById<TextView>(R.id.txtFilaSubtitulo).apply {
+            text = subtitulo
+            visibility = if (subtitulo.isBlank()) View.GONE else View.VISIBLE
         }
-
-        // Exámenes
-        txtExamenesActivos.text = "$examenes activo${if (examenes == 1) "" else "s"}"
-        if (examenes > 0) {
-            txtBadgeExNuevos.text = "$examenes disponible${if (examenes == 1) "" else "s"}"
-            txtBadgeExNuevos.visibility = View.VISIBLE
-        } else {
-            txtBadgeExNuevos.visibility = View.GONE
+        fila.findViewById<TextView>(R.id.txtFilaValor).apply {
+            text = valor ?: ""
+            visibility = if (valor.isNullOrBlank()) View.GONE else View.VISIBLE
+            colorValor?.let { setTextColor(it) }
         }
-
-        // Foros
-        txtForosActivos.text = "$foros activo${if (foros == 1) "" else "s"}"
-        if (foros > 0) {
-            txtBadgeFrNuevos.text = "$foros activo${if (foros == 1) "" else "s"}"
-            txtBadgeFrNuevos.visibility = View.VISIBLE
-        } else {
-            txtBadgeFrNuevos.visibility = View.GONE
-        }
-
-        // Mensajes
-        if (mensajesSinLeer > 0) {
-            txtBadgeMsjNuevos.text = "$mensajesSinLeer sin leer"
-            txtBadgeMsjNuevos.visibility = View.VISIBLE
-        } else {
-            txtBadgeMsjNuevos.visibility = View.GONE
-        }
+        fila.setOnClickListener { onClick() }
+        contenedor.addView(fila)
     }
 
-    private fun mostrarNotificaciones(s: NotificationSummary) {
-        // Banner de estado general
-        val totalAlertas = s.getTotalAlertas()
-        if (totalAlertas > 0) {
-            txtStatusEmoji.text = "⚡"
-            txtStatusTitle.text = "$totalAlertas pendiente${if (totalAlertas > 1) "s" else ""} por atender"
-            txtStatusDesc.text = "Revisa los entregables y evaluaciones activas a continuación."
-            cardStatusBanner.strokeColor = ContextCompat.getColor(requireContext(), R.color.stroke_alert)
-        } else {
-            txtStatusEmoji.text = "✨"
-            txtStatusTitle.text = "Al corriente"
-            txtStatusDesc.text = "No tienes avisos urgentes sin revisar en tus cursos."
-            cardStatusBanner.strokeColor = ContextCompat.getColor(requireContext(), R.color.stroke_ok)
-        }
+    private fun ponerIconoResumen(@DrawableRes icono: Int, @ColorRes color: Int) {
+        imgResumen.setImageResource(icono)
+        imgResumen.imageTintList = ContextCompat.getColorStateList(requireContext(), color)
+    }
 
-        // Actividades
-        txtActividadesActivas.text = "${s.actActivas} activa${if (s.actActivas == 1) "" else "s"}"
-        txtBadgeActNuevas.text = "${s.actNuevas} nueva${if (s.actNuevas == 1) "" else "s"}"
-        txtBadgeActNuevas.visibility = if (s.actNuevas > 0) View.VISIBLE else View.GONE
-
-        // Exámenes
-        txtExamenesActivos.text = "${s.exActivos} activo${if (s.exActivos == 1) "" else "s"}"
-        txtBadgeExNuevos.text = "${s.exNuevos} nuevo${if (s.exNuevos == 1) "" else "s"}"
-        txtBadgeExNuevos.visibility = if (s.exNuevos > 0) View.VISIBLE else View.GONE
-
-        // Foros
-        txtForosActivos.text = "${s.frActivos} activo${if (s.frActivos == 1) "" else "s"}"
-        txtBadgeFrNuevos.text = "${s.frNuevos} nuevo${if (s.frNuevos == 1) "" else "s"}"
-        txtBadgeFrNuevos.visibility = if (s.frNuevos > 0) View.VISIBLE else View.GONE
-
-        // Mensajes
-        txtBadgeMsjNuevos.text = "${s.msjNuevos} sin leer"
-        txtBadgeMsjNuevos.visibility = if (s.msjNuevos > 0) View.VISIBLE else View.GONE
+    /** Contador rojo sobre un acceso rápido; se oculta en 0. */
+    private fun ponerContador(badge: TextView, n: Int) {
+        badge.visibility = if (n > 0) View.VISIBLE else View.GONE
+        badge.text = if (n > 99) "99+" else n.toString()
     }
 }
-

@@ -19,6 +19,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.pako.eminus4.R
 import com.pako.eminus4.core.SessionManager
 import com.pako.eminus4.data.api.EminusApiClient
+import com.pako.eminus4.util.iconoInicio
 
 /**
  * CourseDetailActivity — Muestra el detalle de un curso con su lista de actividades.
@@ -129,9 +130,12 @@ class CourseDetailActivity : AppCompatActivity() {
     }
 
     private fun configurarStats(actividades: Int, foros: Int, integrantes: Int) {
-        statActividades.text = "📝 $actividades Act."
-        statForos.text       = "💬 $foros Foro${if (foros == 1) "" else "s"}"
-        statIntegrantes.text = "👥 $integrantes"
+        statActividades.text = "$actividades Act."
+        statActividades.iconoInicio(R.drawable.ic_assignment, tamanoDp = 14, separacionDp = 4)
+        statForos.text       = "$foros Foro${if (foros == 1) "" else "s"}"
+        statForos.iconoInicio(R.drawable.ic_forum, tamanoDp = 14, separacionDp = 4)
+        statIntegrantes.text = "$integrantes"
+        statIntegrantes.iconoInicio(R.drawable.ic_group, tamanoDp = 14, separacionDp = 4)
     }
 
     private fun configurarRecyclerView() {

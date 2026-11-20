@@ -28,7 +28,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="⚠️ Sesión caducada. Mostrando datos guardados."
+            android:drawableStart="@drawable/ic_warning"
+            android:drawablePadding="8dp"
+            android:drawableTint="@color/banner_offline_text"
+            android:gravity="center_vertical"
+            android:text="Sesión caducada. Mostrando datos guardados."
             android:textColor="@color/banner_offline_text"
             android:textSize="12sp"
             android:textStyle="bold" />

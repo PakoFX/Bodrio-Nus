@@ -52,6 +52,9 @@
     <color name="stroke_alert">#38BDF8</color>
     <color name="stroke_ok">#CBD5E1</color>
 
+    <!-- Contador de accesos rápidos -->
+    <color name="badge_count_bg">#DC2626</color>
+
     <!-- Banner offline -->
     <color name="banner_offline_bg">#FEF3C7</color>
     <color name="banner_offline_text">#92400E</color>

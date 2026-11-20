@@ -10,6 +10,8 @@ import com.pako.eminus4.data.model.UserProfile
 
 class SessionManager(context: Context) {
 
+    private val appContext: Context = context.applicationContext
+
     private val prefs: SharedPreferences = context.getSharedPreferences(
         Constants.PREFS_NAME,
         Context.MODE_PRIVATE
@@ -121,6 +123,76 @@ class SessionManager(context: Context) {
 
     fun hasStudentCredential(): Boolean {
         return getStudentCredential() != null
+    }
+
+    /** Matrícula oficial de quien tiene la sesión ("zs24022198" -> "S24022198"), o null. */
+    fun getMatriculaSesion(): String? {
+        val id = getUserId()?.trim()?.takeIf { it.isNotBlank() && it != "null" } ?: return null
+        val upper = id.uppercase()
+        return if (upper.startsWith("Z") && upper.length > 1 && upper[1].isLetter()) upper.substring(1) else upper
+    }
+
+    /**
+     * Credencial guardada SOLO si pertenece a quien tiene la sesión.
+     * Si no hay sesión (modo sin conexión tras cerrar sesión) se devuelve la guardada.
+     */
+    fun getCredencialDelUsuarioActual(): StudentCredential? {
+        val cred = getStudentCredential() ?: return null
+        val matricula = getMatriculaSesion() ?: return cred
+        return if (cred.getMatriculaOficial() == matricula) cred else null
+    }
+
+    /**
+     * Guarda en la credencial del usuario actual los datos oficiales leídos de MiUV.
+     * Solo se sobrescribe lo que MiUV sí trajo.
+     */
+    fun aplicarDatosMiuv(
+        datos: com.pako.eminus4.data.MiuvSync.DatosMiuv,
+        nombreRespaldo: String?,
+        matriculaRespaldo: String?
+    ) {
+        // Recién iniciada la sesión, Eminus a veces aún no ha reportado el usuario:
+        // se usa la matrícula que la persona escribió en el login.
+        val matricula = getMatriculaSesion() ?: normalizarMatricula(matriculaRespaldo) ?: return
+        if (getMatriculaSesion() == null) {
+            prefs.edit().putString(Constants.KEY_USER_ID, matriculaRespaldo!!.trim().lowercase()).apply()
+        }
+        val base = getCredencialDelUsuarioActual() ?: StudentCredential(
+            user = matricula,
+            name = nombreRespaldo.orEmpty(),
+            qrCode = "https://dsia.uv.mx/credencial/validar?u=$matricula",
+            barCode = matricula
+        )
+        saveStudentCredential(
+            base.copy(
+                // Recién iniciada la sesión el nombre puede faltar: se completa con el de la sesión
+                name = base.name.ifBlank { nombreRespaldo ?: getUserProfile().getNombreCompleto() },
+                program = datos.programa ?: base.program,
+                region = datos.campus ?: base.region,
+                facultad = datos.facultad ?: base.facultad,
+                area = datos.area ?: base.area,
+                nivel = datos.nivel ?: base.nivel,
+                photo = datos.fotoLocal ?: base.photo,
+                actualizadoMiuv = System.currentTimeMillis()
+            )
+        )
+    }
+
+    /** "zS24022198" / "zs24022198" -> "S24022198"; null si viene vacío. */
+    fun normalizarMatricula(id: String?): String? {
+        val upper = id?.trim()?.uppercase()?.takeIf { it.isNotBlank() && it != "NULL" } ?: return null
+        return if (upper.startsWith("Z") && upper.length > 1 && upper[1].isLetter()) upper.substring(1) else upper
+    }
+
+    /** Borra la credencial guardada si es de otra persona (al iniciar sesión con otra cuenta). */
+    fun descartarCredencialAjena(nuevoUserId: String?) {
+        val cred = getStudentCredential() ?: return
+        val nueva = normalizarMatricula(nuevoUserId) ?: return
+        if (cred.getMatriculaOficial() != nueva) {
+            prefs.edit().remove(KEY_STUDENT_CREDENTIAL).apply()
+            // Fotos oficiales descargadas de MiUV de la persona anterior
+            java.io.File(appContext.filesDir, "credencial").listFiles()?.forEach { it.delete() }
+        }
     }
 
     /**

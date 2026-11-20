@@ -68,6 +68,12 @@ class EminusApiClient(private val sessionManager: SessionManager) {
         }
         .build()
 
+    /** Mismo cliente (interceptores, cookies) pero con tiempos amplios para subir archivos pesados. */
+    private val uploadClient: OkHttpClient = client.newBuilder()
+        .writeTimeout(5, TimeUnit.MINUTES)
+        .readTimeout(2, TimeUnit.MINUTES)
+        .build()
+
     /**
      * Obtiene todos los cursos del usuario autenticado de forma asíncrona.
      */
@@ -146,7 +152,9 @@ class EminusApiClient(private val sessionManager: SessionManager) {
                     }
 
                     val listType = object : com.google.gson.reflect.TypeToken<List<Activity>>() {}.type
-                    val actividades: List<Activity> = gson.fromJson(bodyString, listType)
+                    val actividades: List<Activity> =
+                        if (code == 204 || bodyString.isBlank()) emptyList()
+                        else gson.fromJson<List<Activity>>(bodyString, listType) ?: emptyList()
 
                     Log.d("EMINUS_API", "Actividades del curso $idCurso: ${actividades.size}")
                     postResult(onResult, Result.success(actividades))
@@ -544,36 +552,52 @@ class EminusApiClient(private val sessionManager: SessionManager) {
         })
     }
 
-    /**
-     * Paso 1 de entrega: Sube el archivo físico como multipart a Eminus.
-     * El servidor responde con el id del archivo adjuntado (campo `idActividadEntregas` en el JSON).
-     * Si la entrega ya existe (idActividadEntregas > 0), lo usa para reemplazar el archivo.
+    /*
+     * ===================== ENTREGA DE ACTIVIDADES =====================
+     * Flujo idéntico al de Eminus web (bundle eminus4 v1.0.37, componente de entrega del alumno):
+     *  1. Si el alumno aún no tiene entrega (idActividadEntrega == 0) se crea un BORRADOR con
+     *     POST Actividad/InsertaActividadEntrega → responde { "salida": <idActividadEntrega> }.
+     *  2. Se sube el archivo: POST actividad/adjuntarEntrega?idCurso&idActividad&idActividadEntregas
+     *     (multipart, campo "file").
+     *  3. Se confirma la entrega: POST Actividad/InsertaActividadEntrega con visible = 1.
      */
-    fun uploadDeliveryFile(
+
+    /** Cuerpo JSON que Eminus web envía a InsertaActividadEntrega (clase `co` del bundle). */
+    private fun deliveryPayload(
         idCurso: Long,
         idActividad: Long,
-        idActividadEntregas: Long,
-        archivo: File,
-        mimeType: String,
-        onResult: (Result<Long>) -> Unit
-    ) {
-        val url = "${Constants.API_GLOBAL_URL}actividad/adjuntarEntrega" +
-                "?idCurso=$idCurso&idActividad=$idActividad&idActividadEntregas=$idActividadEntregas"
+        idActividadEntrega: Long,
+        textoHtml: String,
+        visible: Int,
+        tieneAdjuntos: Int,
+        fechaEntregaIso: String?
+    ): RequestBody = JSONObject().apply {
+        put("idActividadEntrega", idActividadEntrega)
+        put("texto", textoHtml)
+        put("idActividad", idActividad)
+        put("idCurso", idCurso)
+        put("visible", visible)
+        put("tieneAdjuntos", tieneAdjuntos)
+        put("idEquipo", 0)
+        put("fechaEntrega", fechaEntregaIso ?: JSONObject.NULL)
+    }.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
 
-        val fileBody: RequestBody = archivo.asRequestBody(mimeType.toMediaTypeOrNull())
-        val multipartBody: RequestBody = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart("file", archivo.name, fileBody)
-            .build()
+    /**
+     * Paso 1: crea el borrador de entrega y devuelve su idActividadEntrega.
+     */
+    fun createDeliveryDraft(idCurso: Long, idActividad: Long, onResult: (Result<Long>) -> Unit) {
+        val isoNow = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
+            .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
+            .format(java.util.Date())
 
         val request = Request.Builder()
-            .url(url)
-            .post(multipartBody)
+            .url("${Constants.API_GLOBAL_URL}Actividad/InsertaActividadEntrega")
+            .post(deliveryPayload(idCurso, idActividad, 0L, "", 0, 0, isoNow))
             .build()
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e("EMINUS_API", "Error de red al subir entrega", e)
+                Log.e("EMINUS_API", "Error de red al crear borrador de entrega", e)
                 postResult(onResult, Result.failure(e))
             }
 
@@ -581,60 +605,99 @@ class EminusApiClient(private val sessionManager: SessionManager) {
                 try {
                     val code = response.code
                     val bodyString = response.body?.string() ?: ""
-                    Log.d("EMINUS_API", "adjuntarEntrega HTTP $code: $bodyString")
+                    Log.d("EMINUS_API", "InsertaActividadEntrega (borrador) HTTP $code: $bodyString")
 
                     if (code == 401) {
                         postResult(onResult, Result.failure(Exception("Sesión expirada (401)")))
                         return
                     }
                     if (!response.isSuccessful) {
-                        postResult(onResult, Result.failure(Exception("Error al subir archivo ($code)")))
+                        postResult(onResult, Result.failure(Exception("Eminus rechazó crear la entrega ($code)")))
                         return
                     }
 
-                    // La API devuelve el id del adjunto — puede ser un número directo o un JSON
-                    val idAdjunto: Long = try {
-                        val json = JSONObject(bodyString)
-                        json.optLong("idActividadEntregas", json.optLong("id", 0L))
-                    } catch (_: Exception) {
-                        bodyString.trim().toLongOrNull() ?: 0L
+                    val id = parseSalida(bodyString)
+                    if (id > 0) {
+                        postResult(onResult, Result.success(id))
+                    } else {
+                        postResult(onResult, Result.failure(Exception("Eminus no devolvió el número de entrega")))
                     }
-
-                    postResult(onResult, Result.success(idAdjunto))
                 } catch (e: Exception) {
-                    Log.e("EMINUS_API", "Error parseando respuesta de adjuntarEntrega", e)
+                    Log.e("EMINUS_API", "Error parseando borrador de entrega", e)
                     postResult(onResult, Result.failure(e))
                 }
             }
         })
     }
 
+    /** Eminus responde `{ "salida": 123 }` (a veces como texto o dentro de un arreglo). */
+    private fun parseSalida(body: String): Long {
+        val trimmed = body.trim()
+        trimmed.toLongOrNull()?.let { return it }
+        return try {
+            val obj = if (trimmed.startsWith("[")) org.json.JSONArray(trimmed).getJSONObject(0) else JSONObject(trimmed)
+            obj.optString("salida", "0").trim().toLongOrNull() ?: 0L
+        } catch (_: Exception) {
+            0L
+        }
+    }
+
     /**
-     * Paso 2 de entrega: Confirma/registra la entrega en Eminus.
-     * Se llama DESPUÉS de uploadDeliveryFile exitoso.
+     * Paso 2: sube el archivo físico como multipart a la entrega indicada.
      */
-    fun insertDelivery(
+    fun uploadDeliveryFile(
         idCurso: Long,
         idActividad: Long,
         idActividadEntregas: Long,
-        userId: String,
-        comentario: String = "",
-        onResult: (Result<Boolean>) -> Unit
+        archivo: File,
+        nombreOriginal: String,
+        mimeType: String,
+        onResult: (Result<Unit>) -> Unit
     ) {
-        val url = "${Constants.API_GLOBAL_URL}Actividad/InsertaActividadEntrega"
+        val url = "${Constants.API_GLOBAL_URL}actividad/adjuntarEntrega" +
+                "?idCurso=$idCurso&idActividad=$idActividad&idActividadEntregas=$idActividadEntregas"
 
-        val jsonPayload = JSONObject().apply {
-            put("idCurso", idCurso)
-            put("idActividad", idActividad)
-            put("idActividadEntregas", idActividadEntregas)
-            put("idUsuario", userId)
-            put("descEntrega", comentario)
-        }.toString()
+        val multipartBody: RequestBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("file", nombreOriginal, archivo.asRequestBody(mimeType.toMediaTypeOrNull()))
+            .build()
 
-        val body = jsonPayload.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+        val request = Request.Builder().url(url).post(multipartBody).build()
+
+        uploadClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("EMINUS_API", "Error de red al subir entrega", e)
+                postResult(onResult, Result.failure(e))
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val code = response.code
+                val bodyString = try { response.body?.string() ?: "" } catch (_: Exception) { "" }
+                Log.d("EMINUS_API", "adjuntarEntrega HTTP $code: $bodyString")
+
+                when {
+                    code == 401 -> postResult(onResult, Result.failure(Exception("Sesión expirada (401)")))
+                    code == 413 -> postResult(onResult, Result.failure(Exception("El archivo es demasiado grande para Eminus")))
+                    !response.isSuccessful -> postResult(onResult, Result.failure(Exception("Error al subir archivo ($code)")))
+                    else -> postResult(onResult, Result.success(Unit))
+                }
+            }
+        })
+    }
+
+    /**
+     * Paso 3: envía (confirma) la entrega para que el docente la vea.
+     */
+    fun submitDelivery(
+        idCurso: Long,
+        idActividad: Long,
+        idActividadEntrega: Long,
+        textoHtml: String,
+        onResult: (Result<Unit>) -> Unit
+    ) {
         val request = Request.Builder()
-            .url(url)
-            .post(body)
+            .url("${Constants.API_GLOBAL_URL}Actividad/InsertaActividadEntrega")
+            .post(deliveryPayload(idCurso, idActividad, idActividadEntrega, textoHtml, 1, 1, null))
             .build()
 
         client.newCall(request).enqueue(object : Callback {
@@ -644,24 +707,49 @@ class EminusApiClient(private val sessionManager: SessionManager) {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                try {
-                    val code = response.code
-                    val bodyString = response.body?.string() ?: ""
-                    Log.d("EMINUS_API", "InsertaActividadEntrega HTTP $code: $bodyString")
+                val code = response.code
+                val bodyString = try { response.body?.string() ?: "" } catch (_: Exception) { "" }
+                Log.d("EMINUS_API", "InsertaActividadEntrega (envío) HTTP $code: $bodyString")
 
-                    if (code == 401) {
-                        postResult(onResult, Result.failure(Exception("Sesión expirada (401)")))
-                        return
-                    }
-                    if (!response.isSuccessful) {
-                        postResult(onResult, Result.failure(Exception("Error al confirmar entrega ($code)")))
-                        return
-                    }
+                when {
+                    code == 401 -> postResult(onResult, Result.failure(Exception("Sesión expirada (401)")))
+                    !response.isSuccessful -> postResult(onResult, Result.failure(Exception("Error al confirmar entrega ($code)")))
+                    else -> postResult(onResult, Result.success(Unit))
+                }
+            }
+        })
+    }
 
-                    postResult(onResult, Result.success(true))
-                } catch (e: Exception) {
-                    Log.e("EMINUS_API", "Error en InsertaActividadEntrega", e)
-                    postResult(onResult, Result.failure(e))
+    /**
+     * Quita un archivo ya subido de la entrega del alumno.
+     * Igual que Eminus web: PUT actividad/eliminaArchivoEntrega { idArchivosEntregas, idcurso }.
+     */
+    fun deleteDeliveryFile(idCurso: Long, idArchivosEntregas: Long, onResult: (Result<Unit>) -> Unit) {
+        val body = JSONObject().apply {
+            put("idArchivosEntregas", idArchivosEntregas)
+            put("idcurso", idCurso)
+        }.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+
+        val request = Request.Builder()
+            .url("${Constants.API_GLOBAL_URL}actividad/eliminaArchivoEntrega")
+            .put(body)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("EMINUS_API", "Error de red al quitar archivo de entrega", e)
+                postResult(onResult, Result.failure(e))
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val code = response.code
+                val bodyString = try { response.body?.string() ?: "" } catch (_: Exception) { "" }
+                Log.d("EMINUS_API", "eliminaArchivoEntrega HTTP $code: $bodyString")
+
+                when {
+                    code == 401 -> postResult(onResult, Result.failure(Exception("Sesión expirada (401)")))
+                    !response.isSuccessful -> postResult(onResult, Result.failure(Exception("Error al quitar archivo ($code)")))
+                    else -> postResult(onResult, Result.success(Unit))
                 }
             }
         })

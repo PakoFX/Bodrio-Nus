@@ -16,6 +16,7 @@ import android.webkit.MimeTypeMap
 import android.webkit.WebView
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -39,6 +40,8 @@ import com.pako.eminus4.data.model.ActivityDetail
 import com.pako.eminus4.data.model.DeliveryAttachment
 import com.pako.eminus4.data.model.StudentDelivery
 import com.pako.eminus4.ui.viewer.FileViewerActivity
+import com.pako.eminus4.util.iconoInicio
+import com.pako.eminus4.util.mostrarIconoArchivo
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -89,6 +92,13 @@ class ActivityDetailActivity : AppCompatActivity() {
     private lateinit var btnClearFile: ImageButton
     private lateinit var btnSelectFile: MaterialButton
     private lateinit var btnSubmitDelivery: MaterialButton
+    private lateinit var layoutDeliveryComment: View
+    private lateinit var editDeliveryComment: EditText
+    private lateinit var layoutUploadProgress: View
+    private lateinit var txtUploadProgress: TextView
+    private lateinit var btnEditDelivery: MaterialButton
+    private lateinit var btnCancelEdit: MaterialButton
+    private lateinit var txtEditHint: TextView
 
     private lateinit var cardTeacherFeedback: MaterialCardView
     private lateinit var txtTeacherFeedback: TextView
@@ -96,6 +106,11 @@ class ActivityDetailActivity : AppCompatActivity() {
 
     private var selectedFileUri: Uri? = null
     private var currentDelivery: StudentDelivery? = null   // guardamos la entrega activa
+    private var currentDetail: ActivityDetail? = null
+    private var enviandoEntrega = false
+    private var comentarioPrecargado: String? = null
+    /** Una entrega ya enviada solo se modifica tras pulsar "Editar entrega". */
+    private var modoEdicion = false
 
     // Lista de actividades para navegación entre ellas
     private var activityIds: LongArray = LongArray(0)
@@ -111,6 +126,7 @@ class ActivityDetailActivity : AppCompatActivity() {
             val fileName = obtenerNombreArchivo(uri)
             txtSelectedFileName.text = fileName
             layoutSelectedFile.visibility = View.VISIBLE
+            layoutDeliveryComment.visibility = View.VISIBLE
             btnSubmitDelivery.isEnabled = true
         }
     }
@@ -152,7 +168,7 @@ class ActivityDetailActivity : AppCompatActivity() {
 
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        toolbar.setNavigationOnClickListener { finish() }
+        toolbar.setNavigationOnClickListener { onBackPressedDispatcher.onBackPressed() }
         configurarNavegacionActividades()
         swipeRefresh         = findViewById(R.id.swipeRefresh)
         txtActivityTitle     = findViewById(R.id.txtActivityTitle)
@@ -179,6 +195,21 @@ class ActivityDetailActivity : AppCompatActivity() {
         btnClearFile             = findViewById(R.id.btnClearFile)
         btnSelectFile            = findViewById(R.id.btnSelectFile)
         btnSubmitDelivery        = findViewById(R.id.btnSubmitDelivery)
+        layoutDeliveryComment    = findViewById(R.id.layoutDeliveryComment)
+        editDeliveryComment      = findViewById(R.id.editDeliveryComment)
+        layoutUploadProgress     = findViewById(R.id.layoutUploadProgress)
+        txtUploadProgress        = findViewById(R.id.txtUploadProgress)
+        btnEditDelivery          = findViewById(R.id.btnEditDelivery)
+        btnCancelEdit            = findViewById(R.id.btnCancelEdit)
+        txtEditHint              = findViewById(R.id.txtEditHint)
+
+        btnEditDelivery.setOnClickListener {
+            modoEdicion = true
+            refrescarEntrega()
+        }
+        btnCancelEdit.setOnClickListener {
+            salirDeEdicion()
+        }
 
         cardTeacherFeedback      = findViewById(R.id.cardTeacherFeedback)
         txtTeacherFeedback       = findViewById(R.id.txtTeacherFeedback)
@@ -204,14 +235,24 @@ class ActivityDetailActivity : AppCompatActivity() {
         }
 
         btnClearFile.setOnClickListener {
-            selectedFileUri = null
-            layoutSelectedFile.visibility = View.GONE
-            btnSubmitDelivery.isEnabled = false
+            limpiarArchivoSeleccionado()
         }
 
         btnSubmitDelivery.setOnClickListener {
             mostrarDialogoConfirmarEnvio()
         }
+
+        // No permitir salir a media subida sin avisar (la entrega quedaría a medias)
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (enviandoEntrega) {
+                    Toast.makeText(this@ActivityDetailActivity, "Espera a que termine el envío…", Toast.LENGTH_SHORT).show()
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
     }
 
     private fun configurarNavegacionActividades() {
@@ -244,6 +285,7 @@ class ActivityDetailActivity : AppCompatActivity() {
 
     private fun navegarA(index: Int) {
         if (index < 0 || index >= activityIds.size) return
+        if (enviandoEntrega) return
         currentIndex       = index
         activityId         = activityIds[index]
         activityTitleText  = activityTitles.getOrElse(index) { "Actividad" }
@@ -252,9 +294,20 @@ class ActivityDetailActivity : AppCompatActivity() {
         txtActivityTitle.text  = activityTitleText
         actualizarEstadoBotonesNav()
 
+        limpiarArchivoSeleccionado()
+        editDeliveryComment.setText("")
+        comentarioPrecargado = null
+        modoEdicion = false
+        currentDelivery = null
+        currentDetail = null
+        cargarDetalleActividad()
+    }
+
+    private fun limpiarArchivoSeleccionado() {
         selectedFileUri = null
         layoutSelectedFile.visibility = View.GONE
-        cargarDetalleActividad()
+        layoutDeliveryComment.visibility = View.GONE
+        btnSubmitDelivery.isEnabled = false
     }
 
     private fun cargarDetalleActividad() {
@@ -284,6 +337,7 @@ class ActivityDetailActivity : AppCompatActivity() {
     }
 
     private fun mostrarDetalle(detail: ActivityDetail) {
+        currentDetail = detail
         activityTitleText = detail.titulo
         txtActivityTitle.text = detail.titulo
         txtCourseSubtitle.text = courseName
@@ -302,19 +356,35 @@ class ActivityDetailActivity : AppCompatActivity() {
             badgeStatus.setTextColor(ContextCompat.getColor(this, R.color.badge_info_text))
             txtScoreValue.text = "Valor: ${"%.0f".format(valor)} pts"
         } else {
-            badgeStatus.text = "Pendiente"
-            badgeStatus.setBackgroundResource(R.drawable.bg_pill_closed)
-            badgeStatus.setTextColor(ContextCompat.getColor(this, R.color.badge_warning_text))
+            // Mismo vocabulario que Avisos (EstadoAlumno)
+            val (texto, color) = when {
+                detail.estaCerrada -> "No entregada" to R.color.badge_error_text
+                detail.estado == 0 -> "Borrador sin enviar" to R.color.badge_warning_text
+                else -> "Por hacer" to R.color.badge_warning_text
+            }
+            badgeStatus.text = texto
+            badgeStatus.setBackgroundResource(R.drawable.bg_status_pill)
+            badgeStatus.setTextColor(ContextCompat.getColor(this, color))
             txtScoreValue.text = "Valor: ${"%.0f".format(valor)} pts"
         }
 
         // Fechas
-        txtFechaInicio.text  = "📅 Inicio: ${formatearFechaIso(detail.fechaInicio)}"
-        txtFechaTermino.text = "⏳ Límite: ${formatearFechaIso(detail.fechaTermino)}"
+        txtFechaInicio.text  = "Inicio: ${formatearFechaIso(detail.fechaInicio)}"
+        txtFechaInicio.iconoInicio(R.drawable.ic_event, ContextCompat.getColor(this, R.color.text_secondary))
+        txtFechaTermino.text = "Límite: ${formatearFechaIso(detail.fechaTermino)}"
+        txtFechaTermino.iconoInicio(R.drawable.ic_schedule, ContextCompat.getColor(this, R.color.text_secondary))
 
-        if (!detail.fechaEntrega.isNullOrBlank()) {
+        // Eminus también llena fechaEntrega cuando solo existe un borrador (estado 0)
+        if (!detail.fechaEntrega.isNullOrBlank() && detail.estaEntregada) {
             txtFechaEntrega.visibility = View.VISIBLE
-            txtFechaEntrega.text = "✅ Entregada el: ${formatearFechaIso(detail.fechaEntrega)}"
+            txtFechaEntrega.setTextColor(ContextCompat.getColor(this, R.color.badge_success_text))
+            txtFechaEntrega.text = "Entregada el: ${formatearFechaIso(detail.fechaEntrega)}"
+            txtFechaEntrega.iconoInicio(R.drawable.ic_check_circle)
+        } else if (!detail.fechaEntrega.isNullOrBlank() && detail.estado == 0) {
+            txtFechaEntrega.visibility = View.VISIBLE
+            txtFechaEntrega.setTextColor(ContextCompat.getColor(this, R.color.badge_warning_text))
+            txtFechaEntrega.text = "Borrador guardado el ${formatearFechaIso(detail.fechaEntrega)} (aún no se envía)"
+            txtFechaEntrega.iconoInicio(R.drawable.ic_edit_note)
         } else {
             txtFechaEntrega.visibility = View.GONE
         }
@@ -339,13 +409,19 @@ class ActivityDetailActivity : AppCompatActivity() {
         }
 
         // Control de Estado de Cierre / Bloqueo de Entregas
-        if (detail.estaCerrada) {
+        if (detail.estaCerrada || detail.esPorEquipos) {
             layoutClosedNotice.visibility = View.VISIBLE
             btnSelectFile.visibility = View.GONE
             btnSubmitDelivery.visibility = View.GONE
             layoutSelectedFile.visibility = View.GONE
+            layoutDeliveryComment.visibility = View.GONE
+            selectedFileUri = null
 
-            if (detail.estaCalificada) {
+            if (!detail.estaCerrada && detail.esPorEquipos) {
+                txtClosedTitle.text = "Actividad por Equipo"
+                txtClosedReason.text = "Las entregas en equipo deben hacerse desde Eminus web para no sobrescribir el trabajo de tus compañeros."
+                txtClosedTitle.setTextColor(ContextCompat.getColor(this, R.color.badge_info_text))
+            } else if (detail.estaCalificada) {
                 txtClosedTitle.text = "Actividad Calificada"
                 txtClosedReason.text = "Esta actividad ya fue evaluada (${"%.1f".format(detail.calificacion)}/${"%.0f".format(valor)} pts). No se admiten modificaciones."
                 txtClosedTitle.setTextColor(ContextCompat.getColor(this, R.color.badge_success_text))
@@ -356,17 +432,8 @@ class ActivityDetailActivity : AppCompatActivity() {
             }
         } else {
             layoutClosedNotice.visibility = View.GONE
-            btnSelectFile.visibility = View.VISIBLE
-            btnSubmitDelivery.visibility = View.VISIBLE
-
-            if (detail.estaEntregada) {
-                btnSelectFile.text = "Modificar archivo de entrega…"
-                btnSubmitDelivery.text = "Actualizar entrega en Eminus"
-            } else {
-                btnSelectFile.text = "Seleccionar archivo para entrega…"
-                btnSubmitDelivery.text = "Enviar entrega a Eminus"
-            }
         }
+        actualizarControlesEntrega()
 
         // Archivos adjuntos del docente
         val adjuntos = detail.archivosDocente ?: emptyList()
@@ -376,13 +443,13 @@ class ActivityDetailActivity : AppCompatActivity() {
 
             for (adj in adjuntos) {
                 val itemView = LayoutInflater.from(this).inflate(R.layout.item_attachment, layoutAttachmentsList, false)
-                val emoji = itemView.findViewById<TextView>(R.id.txtAttachmentEmoji)
+                val icono = itemView.findViewById<ImageView>(R.id.imgAttachmentIcon)
                 val nombre = itemView.findViewById<TextView>(R.id.txtAttachmentName)
                 val peso = itemView.findViewById<TextView>(R.id.txtAttachmentSize)
                 val btnView = itemView.findViewById<MaterialButton>(R.id.btnViewOnline)
                 val btnDownload = itemView.findViewById<MaterialButton>(R.id.btnDownload)
 
-                emoji.text = adj.getIconEmoji()
+                icono.mostrarIconoArchivo(adj.nombreOriginal)
                 nombre.text = adj.nombreOriginal
                 peso.text = "${adj.peso ?: "Archivo adjunto"} · Material docente"
 
@@ -405,10 +472,109 @@ class ActivityDetailActivity : AppCompatActivity() {
         } else {
             cardTeacherAttachments.visibility = View.GONE
         }
+
+        // El detalle y la entrega se cargan en paralelo: si la entrega llegó primero,
+        // se repinta para mostrar u ocultar "Quitar" según el estado real de la actividad.
+        currentDelivery?.let { mostrarEntregaEstudiante(it) }
+    }
+
+    /** La actividad admite cambios (abierta e individual), sin importar el modo de edición. */
+    private fun actividadAdmiteCambios(): Boolean {
+        val d = currentDetail ?: return false
+        return !d.estaCerrada && !d.esPorEquipos
+    }
+
+    /**
+     * Se pueden agregar/quitar archivos si la actividad admite cambios y, cuando ya hay
+     * una entrega enviada, solo después de pulsar "Editar entrega".
+     */
+    private fun puedeModificarEntrega(): Boolean {
+        val d = currentDetail ?: return false
+        return actividadAdmiteCambios() && !enviandoEntrega && (!d.estaEntregada || modoEdicion)
+    }
+
+    /** Muestra/oculta los controles de entrega según el estado y el modo de edición. */
+    private fun actualizarControlesEntrega() {
+        val d = currentDetail
+        val admite = actividadAdmiteCambios()
+        val entregada = d?.estaEntregada == true
+        val editando = admite && (!entregada || modoEdicion)
+
+        btnEditDelivery.visibility = if (admite && entregada && !modoEdicion) View.VISIBLE else View.GONE
+        txtEditHint.visibility     = if (admite && entregada && modoEdicion) View.VISIBLE else View.GONE
+        btnCancelEdit.visibility   = if (admite && entregada && modoEdicion) View.VISIBLE else View.GONE
+        btnSelectFile.visibility   = if (editando) View.VISIBLE else View.GONE
+        btnSubmitDelivery.visibility = if (editando) View.VISIBLE else View.GONE
+
+        if (!editando) {
+            selectedFileUri = null
+            layoutSelectedFile.visibility = View.GONE
+            layoutDeliveryComment.visibility = View.GONE
+            btnSubmitDelivery.isEnabled = false
+        }
+
+        if (entregada) {
+            btnSelectFile.text = "Agregar archivo a tu entrega…"
+            btnSubmitDelivery.text = "Actualizar entrega en Eminus"
+        } else {
+            btnSelectFile.text = "Seleccionar archivo para entrega…"
+            btnSubmitDelivery.text = "Enviar entrega a Eminus"
+        }
+    }
+
+    /** Repinta controles y lista de archivos (para mostrar/ocultar "Quitar"). */
+    private fun refrescarEntrega() {
+        actualizarControlesEntrega()
+        currentDelivery?.let { mostrarEntregaEstudiante(it) }
+    }
+
+    private fun salirDeEdicion() {
+        if (enviandoEntrega) return
+        modoEdicion = false
+        // Restaurar el comentario original por si se modificó sin enviar
+        editDeliveryComment.setText(comentarioPrecargado ?: "")
+        refrescarEntrega()
+    }
+
+    private fun confirmarQuitarArchivo(archivo: DeliveryAttachment) {
+        if (enviandoEntrega) return
+        AlertDialog.Builder(this)
+            .setTitle("Quitar archivo")
+            .setMessage("¿Quitar \"${archivo.nombreOriginal}\" de tu entrega en Eminus? El docente dejará de verlo.")
+            .setPositiveButton("Quitar") { _, _ -> quitarArchivo(archivo) }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun quitarArchivo(archivo: DeliveryAttachment) {
+        val idCurso = courseId
+        val idActividad = activityId
+        setEnviando(true, "Quitando \"${archivo.nombreOriginal}\"…")
+
+        // Igual que al enviar: confirmar primero que la actividad siga abierta
+        verificarActividadAbierta(idCurso, idActividad) {
+            apiClient.deleteDeliveryFile(idCurso, archivo.idArchivo) { result ->
+                result.onSuccess {
+                    setEnviando(false)
+                    Toast.makeText(this, "Archivo quitado de tu entrega", Toast.LENGTH_SHORT).show()
+                    if (activityId == idActividad) cargarDetalleActividad()
+                }.onFailure { e ->
+                    terminarConError("No se pudo quitar el archivo: ${mensajeError(e)}")
+                }
+            }
+        }
     }
 
     private fun mostrarEntregaEstudiante(delivery: StudentDelivery) {
+        currentDelivery = delivery
         val archivos = delivery.archivos ?: emptyList()
+
+        // Precargar el comentario anterior para no borrarlo al actualizar la entrega
+        if (editDeliveryComment.text.isNullOrBlank() && !delivery.descEntrega.isNullOrBlank()) {
+            comentarioPrecargado =
+                HtmlCompat.fromHtml(delivery.descEntrega, HtmlCompat.FROM_HTML_MODE_COMPACT).toString().trim()
+            editDeliveryComment.setText(comentarioPrecargado)
+        }
 
         if (archivos.isNotEmpty()) {
             layoutDeliveredFilesList.visibility = View.VISIBLE
@@ -416,13 +582,13 @@ class ActivityDetailActivity : AppCompatActivity() {
 
             for (archivo in archivos) {
                 val itemView = LayoutInflater.from(this).inflate(R.layout.item_attachment, layoutDeliveredFilesList, false)
-                val emoji = itemView.findViewById<TextView>(R.id.txtAttachmentEmoji)
+                val icono = itemView.findViewById<ImageView>(R.id.imgAttachmentIcon)
                 val nombre = itemView.findViewById<TextView>(R.id.txtAttachmentName)
                 val peso = itemView.findViewById<TextView>(R.id.txtAttachmentSize)
                 val btnView = itemView.findViewById<MaterialButton>(R.id.btnViewOnline)
                 val btnDownload = itemView.findViewById<MaterialButton>(R.id.btnDownload)
 
-                emoji.text = archivo.getIconEmoji()
+                icono.mostrarIconoArchivo(archivo.nombreOriginal)
                 nombre.text = archivo.nombreOriginal
                 peso.text = "${archivo.peso ?: "Archivo entregado"} · Tu entrega"
 
@@ -439,6 +605,10 @@ class ActivityDetailActivity : AppCompatActivity() {
                 btnDownload.setOnClickListener {
                     descargarConDownloadManager(archivo.getDownloadUrl(activityId), archivo.nombreOriginal)
                 }
+
+                val btnDelete = itemView.findViewById<MaterialButton>(R.id.btnDeleteAttachment)
+                btnDelete.visibility = if (puedeModificarEntrega()) View.VISIBLE else View.GONE
+                btnDelete.setOnClickListener { confirmarQuitarArchivo(archivo) }
 
                 layoutDeliveredFilesList.addView(itemView)
             }
@@ -545,11 +715,169 @@ class ActivityDetailActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("Confirmar Entrega")
             .setMessage("¿Deseas enviar \"$fileName\" como entrega para esta actividad en Eminus?")
-            .setPositiveButton("Enviar") { _, _ ->
-                Toast.makeText(this, "Preparando entrega de \"$fileName\" a Eminus…", Toast.LENGTH_LONG).show()
-            }
+            .setPositiveButton("Enviar") { _, _ -> enviarEntrega() }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    // ===================== ENVÍO REAL DE ENTREGAS =====================
+
+    private fun enviarEntrega() {
+        val uri = selectedFileUri ?: return
+        if (enviandoEntrega) return
+
+        val nombreArchivo = obtenerNombreArchivo(uri)
+        val mimeType = contentResolver.getType(uri)
+            ?: MimeTypeMap.getSingleton().getMimeTypeFromExtension(nombreArchivo.substringAfterLast('.', "").lowercase())
+            ?: "application/octet-stream"
+        val comentario = editDeliveryComment.text?.toString()?.trim().orEmpty()
+        val idCurso = courseId
+        val idActividad = activityId
+
+        setEnviando(true, "Preparando archivo…")
+
+        // Copiar el contenido del Uri a un archivo temporal (OkHttp necesita un File)
+        Thread {
+            val tempFile = try {
+                copiarUriACache(uri, nombreArchivo)
+            } catch (e: Exception) {
+                null
+            }
+            runOnUiThread {
+                if (tempFile == null) {
+                    terminarConError("No se pudo leer el archivo seleccionado.")
+                } else {
+                    verificarActividadAbierta(idCurso, idActividad) {
+                        obtenerIdEntrega(idCurso, idActividad) { idEntrega ->
+                            subirYConfirmar(idCurso, idActividad, idEntrega, tempFile, nombreArchivo, mimeType, comentario)
+                        }
+                    }
+                }
+            }
+        }.start()
+    }
+
+    /** Igual que Eminus web: antes de enviar, se vuelve a consultar el estado real de la actividad. */
+    private fun verificarActividadAbierta(idCurso: Long, idActividad: Long, onOk: () -> Unit) {
+        setEnviando(true, "Verificando que la actividad siga abierta…")
+        apiClient.getActivityDetail(idCurso, idActividad) { result ->
+            result.onSuccess { detail ->
+                when {
+                    detail.esPorEquipos -> terminarConError("Las actividades por equipo deben entregarse desde Eminus web.")
+                    detail.estaCerrada -> {
+                        terminarConError(if (detail.estaCalificada || detail.estado == 3)
+                            "La actividad ya fue calificada; Eminus no admite cambios."
+                        else
+                            "La actividad ya cerró; Eminus no admite nuevas entregas.")
+                        mostrarDetalle(detail)
+                    }
+                    else -> onOk()
+                }
+            }.onFailure { e -> terminarConError(mensajeError(e)) }
+        }
+    }
+
+    /** Usa la entrega existente o crea el borrador (paso 1 del flujo de Eminus). */
+    private fun obtenerIdEntrega(idCurso: Long, idActividad: Long, onId: (Long) -> Unit) {
+        val existente = currentDelivery?.idActividadEntrega ?: 0L
+        if (existente > 0) {
+            onId(existente)
+            return
+        }
+        setEnviando(true, "Creando entrega en Eminus…")
+        apiClient.createDeliveryDraft(idCurso, idActividad) { result ->
+            result.onSuccess { onId(it) }
+                .onFailure { e -> terminarConError(mensajeError(e)) }
+        }
+    }
+
+    private fun subirYConfirmar(
+        idCurso: Long,
+        idActividad: Long,
+        idEntrega: Long,
+        archivo: File,
+        nombreArchivo: String,
+        mimeType: String,
+        comentario: String
+    ) {
+        setEnviando(true, "Subiendo \"$nombreArchivo\"…")
+        apiClient.uploadDeliveryFile(idCurso, idActividad, idEntrega, archivo, nombreArchivo, mimeType) { upload ->
+            upload.onSuccess {
+                setEnviando(true, "Confirmando entrega…")
+                val textoHtml = construirTextoEntrega(comentario, nombreArchivo)
+                apiClient.submitDelivery(idCurso, idActividad, idEntrega, textoHtml) { submit ->
+                    archivo.delete()
+                    submit.onSuccess {
+                        setEnviando(false)
+                        limpiarArchivoSeleccionado()
+                        modoEdicion = false   // entrega actualizada: volver a solo lectura
+                        Toast.makeText(this, "Entrega enviada a Eminus", Toast.LENGTH_LONG).show()
+                        // Si el usuario navegó a otra actividad mientras tanto, no recargamos encima
+                        if (activityId == idActividad) cargarDetalleActividad()
+                    }.onFailure { e ->
+                        terminarConError("El archivo se subió, pero no se pudo confirmar la entrega: ${mensajeError(e)}")
+                    }
+                }
+            }.onFailure { e ->
+                archivo.delete()
+                terminarConError(mensajeError(e))
+            }
+        }
+    }
+
+    /** Eminus exige texto en la entrega; se manda como HTML (el editor web es Froala). */
+    private fun construirTextoEntrega(comentario: String, nombreArchivo: String): String {
+        val previo = currentDelivery?.descEntrega
+        // Si el alumno no tocó el comentario precargado, se reenvía el HTML original intacto
+        // (conserva enlaces, formato e imágenes que la versión en texto plano perdería).
+        if (!previo.isNullOrBlank() && (comentario.isBlank() || comentario == comentarioPrecargado)) {
+            return previo
+        }
+        if (comentario.isNotBlank()) {
+            return comentario.lines().joinToString("") { "<p>${android.text.TextUtils.htmlEncode(it)}</p>" }
+        }
+        return "<p>Entrega: ${android.text.TextUtils.htmlEncode(nombreArchivo)}</p>"
+    }
+
+    private fun copiarUriACache(uri: Uri, nombre: String): File {
+        val dir = File(cacheDir, "entregas").apply { mkdirs() }
+        val seguro = nombre.replace(Regex("[\\\\/:*?\"<>|]"), "_")
+        val destino = File(dir, "${System.currentTimeMillis()}_$seguro")
+        contentResolver.openInputStream(uri).use { input ->
+            requireNotNull(input) { "Uri sin contenido" }
+            destino.outputStream().use { output -> input.copyTo(output) }
+        }
+        return destino
+    }
+
+    private fun setEnviando(enviando: Boolean, mensaje: String = "") {
+        enviandoEntrega = enviando
+        layoutUploadProgress.visibility = if (enviando) View.VISIBLE else View.GONE
+        txtUploadProgress.text = mensaje
+        btnSubmitDelivery.isEnabled = !enviando && selectedFileUri != null
+        btnSelectFile.isEnabled = !enviando
+        btnClearFile.isEnabled = !enviando
+        editDeliveryComment.isEnabled = !enviando
+        swipeRefresh.isEnabled = !enviando
+    }
+
+    private fun terminarConError(mensaje: String) {
+        setEnviando(false)
+        if (isFinishing || isDestroyed) return
+        AlertDialog.Builder(this)
+            .setTitle("No se pudo completar")
+            .setMessage(mensaje)
+            .setPositiveButton("Entendido", null)
+            .show()
+    }
+
+    private fun mensajeError(e: Throwable): String {
+        val msg = e.localizedMessage ?: "Error desconocido"
+        return when {
+            msg.contains("401") -> "Tu sesión de Eminus caducó. Renueva la sesión desde la pantalla principal y vuelve a intentarlo."
+            e is java.io.IOException -> "Sin conexión con Eminus. Revisa tu internet e inténtalo de nuevo."
+            else -> msg
+        }
     }
 
     private fun formatearFechaIso(iso: String?): String {

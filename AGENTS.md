@@ -31,7 +31,8 @@
 4. **Estado de la Tarea Actual:**
    - La visualización de PDFs, imágenes, DOCX y PPTX in-app ya está implementada en `FileViewerActivity.kt`.
    - La pantalla de detalle de actividad (`ActivityDetailActivity.kt`) ya muestra adjuntos de profesores y entregas del alumno, bloquea entregas vencidas y muestra feedback con stickers.
-   - Lo que sigue: Probar renderizado Office en vivo y cablear el upload multipart de entregas (`POST actividad/adjuntarEntrega`).
+   - La entrega real de archivos está conectada (v2.6.0: borrador → `adjuntarEntrega` → `InsertaActividadEntrega`, ver `DEV_CONTEXT.md` §5b).
+   - Lo que sigue: validar la entrega en vivo con una actividad abierta; foros/exámenes in-app.
 
 Para más detalles exhaustivos, consulta siempre **`DEV_CONTEXT.md`**.
 

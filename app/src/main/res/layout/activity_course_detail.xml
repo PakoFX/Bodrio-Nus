@@ -78,7 +78,7 @@
                 android:id="@+id/statActividades"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📝 0 Act."
+                android:text="0 Act."
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
@@ -91,7 +91,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
-                android:text="💬 0 Foros"
+                android:text="0 Foros"
                 android:textSize="12sp"
                 android:textColor="@color/text_title"
                 android:paddingHorizontal="10dp"
@@ -103,7 +103,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
-                android:text="👥 0"
+                android:text="0"
                 android:textSize="12sp"
                 android:textColor="@color/text_secondary"
                 android:paddingHorizontal="10dp"
@@ -150,11 +150,12 @@
                 android:padding="32dp"
                 android:visibility="gone">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="📭"
-                    android:textSize="52sp" />
+                <ImageView
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_inbox"
+                    app:tint="@color/text_tertiary" />
 
                 <TextView
                     android:id="@+id/txtDetailEmpty"

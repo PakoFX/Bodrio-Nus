@@ -56,16 +56,4 @@ data class MessageAttachment(
         }
     }
 
-    fun getIconEmoji(): String {
-        val ext = nombreOriginal.substringAfterLast(".", "").lowercase()
-        return when (ext) {
-            "pdf" -> "📕"
-            "doc", "docx" -> "📘"
-            "ppt", "pptx" -> "📙"
-            "xls", "xlsx" -> "📗"
-            "zip", "rar", "7z" -> "📦"
-            "png", "jpg", "jpeg", "webp" -> "🖼️"
-            else -> "📎"
-        }
-    }
 }

@@ -20,7 +20,7 @@
 6. **ACTIVIDADES CERRADAS O CALIFICADAS NO ADMITEN ENTREGAS:** Si la actividad ya tiene calificación o pasó su `fechaTermino`, los botones de selección y envío de archivos DEBEN ocultarse y mostrarse el aviso con candado `🔒`.
 7. **FEEDBACK DEL PROFESOR CON IMÁGENES/STICKERS:** Eminus usa Froala con imágenes públicas en `https://eminus.uv.mx/eminusapi/froala/...`. Deben cargarse mediante `webTeacherFeedback` transparente con `loadDataWithBaseURL("https://eminus.uv.mx", ...)`.
 8. **IDIOMA DE LA UI:** Todo el texto visible para el usuario debe estar en **Español**.
-9. **VERSIÓN DE LA APP:** Con cada sesión de trabajo que añada funcionalidad real, incrementar `versionCode` (+1) y `versionName` (semver) en `app/build.gradle.kts`. Esquema: `MAJOR.MINOR.PATCH` — MINOR para features nuevas, PATCH para bugfixes. **Versión actual: 2.4.3 (versionCode 11).**
+9. **VERSIÓN DE LA APP:** Con cada sesión de trabajo que añada funcionalidad real, incrementar `versionCode` (+1) y `versionName` (semver) en `app/build.gradle.kts`. Esquema: `MAJOR.MINOR.PATCH` — MINOR para features nuevas, PATCH para bugfixes. **Versión actual: 2.8.0 (versionCode 15).**
 10. **MODO SIN CONEXIÓN Y RESILIENCIA DE SESIÓN (NO EXPULSIÓN ABRUPTA):**
     - Los errores 401 / caducidad de token **NUNCA DEBEN EXPULSAR AL USUARIO** a la pantalla de login ni borrar `SessionManager`.
     - `SplashActivity` permite entrar a `MainActivity` si hay datos en el teléfono (`hasSession()`), garantizando acceso offline a la credencial digital y cursos guardados.
@@ -49,8 +49,31 @@
   - **PPTX:** WebView local cargando `file:///android_asset/viewer/pptx_viewer.html` con `PptxViewJS.min.js` + `chart.umd.min.js` → diapositivas reales con navegación y swipe.
   - Botones superiores en visor: Compartir y Guardar en Descargas.
 
-- ✅ **Módulo Avisos — Pestaña "Avisos" (NotificationsFragment) con 4 cards funcionales:**
-  - **Actividades (`AllActivitiesActivity`):** Lista todas las actividades de todos los cursos activos. Filtros: Todas / Pendientes / Entregadas / Calificadas. Click en ítem abre `ActivityDetailActivity`.
+- ✅ **Criterio único de estado (v2.7.0) — `data/model/EstadoAlumno.kt` + `Activity.estadoAlumno`:**
+  - POR_HACER (abierta, `estado` null) · BORRADOR (abierta, `estado` 0) · ESPERANDO (`estado` 1/2) · CALIFICADA (`calificacion` != null o `estado` 3/4) · NO_ENTREGADA (cerrada y no enviada).
+  - "Abierta" = `estadoAct` 2/4; si no viene, por `fechaTermino`. **`Activity.estado` es `Int?` a propósito** (Gson sin constructor convertiría null en 0 y borraría la diferencia entre "nunca tocada" y "borrador").
+  - Úsalo en TODAS las pantallas (Avisos, lista del curso `ActivityAdapter`, detalle). Pruebas: `app/src/test/.../EstadoAlumnoTest.kt`.
+  - `util/Plazos.kt`: textos de fecha humanos ("Vence mañana, 23:45", "Vence en 3 días", "hace 2 h") con nivel de urgencia.
+- ✅ **Avisos como agenda (v2.7.0) — `NotificationsFragment`:** resumen ("Tienes N por hacer · X vencen en 3 días · K en equipo"), lista POR HACER con las tarjetas reales ordenadas por fecha (máx. 5 + "Ver todas"), y novedades que solo aparecen si hay algo: calificaciones de los últimos 14 días, mensajes sin leer, exámenes disponibles, foros con aportes nuevos; atajo "N entregas esperando calificación" y botones "Ir a". Datos vía `data/AgendaLoader.kt` (cursos activos + actividades; guarda `AgendaLoader.ultimo` en memoria para pintar al instante).
+  - Tarjeta compartida: `item_all_activity.xml` + `ui/courses/ActividadCardBinder.kt` (franja de color del curso, etiqueta 👥 En equipo, píldora de estado, plazo coloreado por urgencia; modo `compacto` en listas agrupadas).
+- ✅ **Sin emojis — íconos vectoriales (v2.7.0):** toda la UI usa **Material Icons (outlined, Apache 2.0)** convertidos a VectorDrawable en `res/drawable/ic_*.xml` (descargados de `@material-design-icons/svg@0.14.15`). **No volver a usar emojis en la UI.**
+  - Texto con ícono: `TextView.iconoInicio(R.drawable.ic_x, color)` (`util/Iconos.kt`). Ícono de archivo por extensión: `ImageView.mostrarIconoArchivo(nombre)` / `iconoArchivo()`.
+  - Cada `EstadoAlumno` trae su `icono`. Para agregar un ícono nuevo: bajar el SVG de ese paquete y convertirlo igual (un `<path>` por figura, `android:tint="?attr/colorControlNormal"`).
+- ✅ **Accesos rápidos de Avisos:** Actividades / Mensajes / Foros / Exámenes fijos en el encabezado (siempre visibles) con contador rojo (`bg_badge_count`): por hacer, mensajes sin leer, foros con aportes nuevos, exámenes disponibles.
+- ✅ **`ActivityDetail.estado` también es `Int?`** (mismo motivo que en `Activity`): antes una actividad nunca tocada aparecía como "Borrador" en el detalle.
+- ✅ **Credencial con datos oficiales de MiUV (v2.8.0) — `data/MiuvSync.kt`:**
+  - Eminus NO expone la carrera (`Usuario/getUsuario` solo trae `idDependencia`). Está en MiUV `dsiapes.uv.mx/MIUV/portales/estudiantes/szigral.aspx` (`span#content_wucDatosGralAlum1_lblProg` + bloques `#div-iAcademica p` "Etiqueta: valor").
+  - MiUV es un **login aparte** (ASP.NET Forms) con el mismo usuario/contraseña. El JWT de Eminus no sirve ahí.
+  - Flujo: en `LoginWebViewActivity` un script captura usuario/contraseña al enviar el formulario (**solo en memoria**). Tras capturar el token de Eminus, `MiuvSync` usa el mismo WebView (oculto tras `layoutSyncMiuv`): `login.aspx` **sin `ReturnUrl`** (con él MiUV redirige a uv.mx) → llena y envía → `smutiles.aspx` → enlace al portal → `szigral.aspx` → extrae datos → descarga la foto con las cookies de MiUV. Límite 45 s; si falla, se entra a la app igual.
+  - **La contraseña se sobrescribe con ceros justo después de llenar el formulario** y otra vez al terminar/`onDestroy`. Nunca se guarda ni se loguea. Al log (`MIUV_SYNC`) solo van NOMBRES de campos.
+  - Solo se guardan programa, campus, facultad, área, nivel y foto (`SessionManager.aplicarDatosMiuv`). La página también trae CURP, NSS, dirección, etc.: **no se guardan**.
+  - Si Eminus aún no reportó `userId` al capturar el token, se usa la matrícula escrita en el login como respaldo.
+  - Foto: `files/credencial/foto_<MATRICULA>_<ts>.jpg`, un archivo por persona y sincronización (evita que la caché de Coil muestre la foto de otra cuenta).
+  - **Dos fotos distintas:** la tarjeta del Perfil usa el **avatar de Eminus** (el que elige la persona); la **foto oficial de MiUV** va SOLO en la credencial. `StudentCredential.esAvatarDeEminus()` compara contra `http…eminus.uv.mx`: NO buscar "eminus" a secas, porque la ruta local `com.pako.eminus4` también lo contiene.
+- ✅ **Credencial por usuario:** `SessionManager.getCredencialDelUsuarioActual()` (pantalla completa y Perfil) y `descartarCredencialAjena()` al iniciar sesión (borra credencial y fotos de la persona anterior). Sin datos personales por defecto en código/layout; `foto_credencial_oficial.png` solo para su dueño (`StudentCredential.MATRICULA_FOTO_EMPAQUETADA`, temporal).
+- ✅ **Fondo animado oficial:** `res/raw/credencial_fondo_animado.gif` (de MiUV `Images/credencial/CRED_GIF_01.gif`, requiere sesión para bajarlo) cargado con `coil-gif` en `imgFondoAnimado`.
+- ✅ **"Mis actividades" (`AllActivitiesActivity`, v2.7.0):** pestañas Por hacer / Esperando calificación / Calificadas / No entregadas con conteo. "Por hacer" ordenada por fecha; las demás agrupadas por curso (`item_section_header.xml`). Abre en la pestaña indicada con `AllActivitiesActivity.start(ctx, Pestana.X)`.
+- ✅ **Módulo Avisos — pantallas secundarias:**
   - **Exámenes (`ExamsActivity`):** Lista todos los exámenes de todos los cursos que tengan exámenes (`isActivo() || examenes > 0`). Filtros: Todos / Disponibles / Calificados. Click muestra dialog informativo "Accede desde Eminus Web".
   - **Foros (`ForumsActivity`):** Lista todos los foros de todos los cursos que tengan foros (`isActivo() || foros > 0`). Filtros: Todos / Con aportes nuevos. Badge de nuevos comentarios. Click muestra dialog informativo.
   - **Mensajería (`MessagesActivity` + `MessageDetailActivity`):** Bandeja Recibidos/Enviados (77+ mensajes reales). Click en mensaje abre detalle completo con cuerpo HTML, remitente, fecha, lista de adjuntos con botones Descargar/Ver.
@@ -63,14 +86,29 @@
   - Persistencia permanente en `SessionManager.saveStudentCredential` (nunca se borra al estar sin conexión).
   - Diálogo de edición para personalizar la carrera/licenciatura mediante click sostenido en la credencial.
 
+- ✅ **Entrega real de archivos (v2.6.0, `ActivityDetailActivity.enviarEntrega`)** — ver sección 5b. **Validada en vivo el 16-nov-2026** (caso "entrega existente": `adjuntarEntrega` 200 + `InsertaActividadEntrega` 200; el archivo aparece, `idEstado` sigue en 1 y el `descEntrega` HTML original se conserva). Falta probar en vivo el caso "sin entrega previa" (creación de borrador).
+- ✅ **Actualización automática** (`AppUpdater.kt`): consulta GitHub Releases al abrir `MainActivity` (silencioso) y desde Perfil (manual).
+
 ### ¿Qué falta por hacer / Tarea activa?
-1. **Subida real de entregas multipart a Eminus:**
-   - Endpoint: `POST https://eminus.uv.mx/eminusapi/api/actividad/adjuntarEntrega?idCurso={c}&idActividad={a}&idActividadEntregas={e}`
-   - Confirmación: `POST https://eminus.uv.mx/eminusapi/api/Actividad/InsertaActividadEntrega`
+1. **Probar en vivo la entrega sin entrega previa** (paso de borrador) y revisar `adb logcat -s EMINUS_API`.
 2. **Foros / Exámenes — apertura in-app:** Actualmente muestran dialog informativo. Podría mejorarse con WebView al portal institucional de Eminus.
+2b. **Foto de la credencial en HD (pendiente, pedido por el usuario):** la foto que se baja de `szigral.aspx` es una miniatura **PNG de 60×80 px** (~8 KB) y se estira ~5× en la credencial (se ve borrosa). Pistas para conseguirla grande:
+   - MiUV tiene su propia **credencial digital** (sus recursos están en `dsiapes.uv.mx/MIUV/portales/Images/credencial/`): esa página probablemente usa una foto más grande. Falta su URL.
+   - La URL de la miniatura podría aceptar un parámetro de tamaño.
+   - API de la app oficial "Mi UV": `dsia.uv.mx/WebApi/General/ApiDocUV/Servicios/RecuperaInfoDocQR` (ver `MiuvApiTest`, hoy responde 400). Ruta más difícil.
+   - Siguiente paso: que el usuario pase la URL de la credencial de MiUV y la de la foto grande (clic derecho → abrir imagen), o agregar un diagnóstico en `MiuvSync` que registre SOLO rutas y tamaños (`naturalWidth/Height`) de las fotos encontradas, nunca valores personales.
+   - El cambio final sería solo en `MiuvSync.extraerDatos()`/`descargarFoto()` (a qué URL apunta).
 3. **Planes futuros (Solicitados por el usuario):**
    - **Buzón de sugerencias / comentarios en Perfil:** Agregar una caja de comentarios / feedback en la pantalla de Perfil (`ProfileFragment`) para que los usuarios puedan enviar ideas, sugerencias y mejoras directamente.
    - **Contador / Telemetría de usuarios activos:** Implementar un mecanismo anónimo y ligero para monitorear cuántas personas están usando la app realmente día a día (ej. ping telemetry o endpoint analítico).
+   - **Notificaciones / recordatorios en el teléfono** (parte D de la propuesta de Avisos, quedó pendiente):
+     - Avisar antes de que venza algo **Por hacer** (p. ej. 24 h y 3 h antes), calificaciones nuevas, mensajes sin leer nuevos y foros con aportes nuevos.
+     - Implementación sugerida: **WorkManager** (`androidx.work:work-runtime-ktx`, dependencia nueva) con un trabajo periódico (~cada 1–3 h) que reutilice `AgendaLoader` + el criterio `EstadoAlumno`/`Plazos`; recordatorios exactos de vencimiento con trabajos únicos programados a la hora límite menos 24 h / 3 h.
+     - Canal de notificaciones propio; pedir el permiso `POST_NOTIFICATIONS` en Android 13+ (ya está declarado en el manifest, falta pedirlo en tiempo de ejecución).
+     - Evitar duplicados guardando en SharedPreferences los ids ya notificados (por actividad + tipo de aviso).
+     - Si el token caducó (401): no avisar en silencio de cosas viejas; como mucho una notificación "Renueva tu sesión para seguir recibiendo avisos".
+     - Interruptor en Perfil para activarlas/desactivarlas (y quizá elegir qué tipos).
+     - Tocar la notificación abre la actividad / mensaje correspondiente (`ActividadCardBinder.abrirDetalle`, `MessageDetailActivity.start`).
 
 ---
 
@@ -89,6 +127,8 @@
 | **Cliente de Red** | `data/api/EminusApiClient.kt` | OkHttpClient con interceptores Bearer y cookies. Métodos para todas las llamadas API y descarga binaria a caché (`downloadFile`). |
 | **Autenticación** | `ui/auth/LoginWebViewActivity.kt` | WebView SSO institucional, extracción de token en `localStorage` y fix de bucle infinito. |
 | **Pantalla Principal** | `ui/main/MainActivity.kt` | BottomNavigationView M3 con navegación FragmentTransaction (`Courses`, `Notifications`, `Profile`). |
+| **Cursos** | `ui/courses/CoursesFragment.kt` | Lista de cursos (pestaña). La antigua `CoursesActivity` se eliminó en v2.6.0. |
+| **Actualizador** | `AppUpdater.kt` | Busca la última release en GitHub, descarga el APK e invoca el instalador. |
 | **Detalle Actividad** | `ui/courses/ActivityDetailActivity.kt` | Visualización de instrucciones, bloqueo de entregas, lista de adjuntos del profe y del alumno, feedback con imágenes, selector de archivo. |
 | **Visor en Línea** | `ui/viewer/FileViewerActivity.kt` | Orquestador de visualización in-app (PDF, DOCX, PPTX, imágenes, texto). |
 | | `ui/viewer/PdfPageAdapter.kt` | Adapter de `PdfRenderer` para scroll vertical fluido de páginas PDF. |
@@ -148,8 +188,9 @@ Eminus 4 no tiene una sola API; está dividido en **dos backends y un servidor d
 | Descargar Archivo Entregado | GET | Global | `actividad/descargaEntregaArchivo/{idCurso}/{idActividad}/{idArchivosEntregas}` | Bearer | Descarga binaria de lo que entregó el alumno. |
 | Notificaciones | GET | Global | `Global/NotificacionesUsuario` | Bearer | Contadores de mensajes, tareas, foros. |
 | Perfil de Usuario | GET | Global | `Usuario/getUsuario` | Bearer | Datos personales, correo, campus. |
-| Subir Adjunto de Entrega | POST | Global | `actividad/adjuntarEntrega?idCurso={c}&idActividad={a}&idActividadEntregas={e}` | Bearer | Multipart con clave `file`. |
-| Confirmar Entrega | POST | Global | `Actividad/InsertaActividadEntrega` | Bearer | JSON con payload de confirmación. |
+| Crear borrador / Confirmar Entrega | POST | Global | `Actividad/InsertaActividadEntrega` | Bearer | Mismo endpoint para borrador (`visible=0`) y envío (`visible=1`). Ver 5b. |
+| Quitar Archivo de Entrega | PUT | Global | `actividad/eliminaArchivoEntrega` | Bearer | JSON `{idArchivosEntregas, idcurso}` (sic, `idcurso` en minúsculas). Responde 200 con cuerpo vacío. Validado en vivo. |
+| Subir Adjunto de Entrega | POST | Global | `actividad/adjuntarEntrega?idCurso={c}&idActividad={a}&idActividadEntregas={e}` | Bearer | Multipart con clave `file`. Requiere `idActividadEntrega` > 0. 413 = archivo muy grande. |
 | **Lista de Exámenes** | GET | Global | `Examen/getExamenesEst/{idCurso}` | Bearer | 200 con array o 204 sin exámenes. Filtrar cursos con `isActivo() \|\| examenes > 0`. |
 | **Lista de Foros** | GET | Global | `Foro/getForos/{idCurso}/0` | Bearer | 200 siempre (array vacío si no hay). Filtrar cursos con `isActivo() \|\| foros > 0`. |
 | **Lista de Mensajes** | GET | Global | `centromensajes/GetListadoMensajes/{folderId}/0` | Bearer | folderId=1 Recibidos, folderId=2 Enviados. |
@@ -198,6 +239,25 @@ val estaCerrada: Boolean
   - Se habilitan los botones de selección y entrega.
   - El botón adapta su texto dinámicamente: "Seleccionar archivo para entrega…" (si es nueva) o "Modificar archivo de entrega…" (si ya tiene entrega previa).
 
+- Valores observados en vivo: `estadoAct` 1 = cerrada, 2 = abierta. `estado`/`idEstado` 0 = sin enviar (borrador), 1 = enviada sin revisar, 3 = calificada. `porEquipos` llega en el detalle.
+- Si la API envía `estadoAct`, **manda sobre la fecha** (regla de Eminus web): solo se entrega si `estadoAct` es 2 (abierta) o 4 (prórroga). `estado == 3` = calificada.
+- Actividades `porEquipos == 1` se bloquean en la app (no manejamos `idEquipo`; se entregan desde Eminus web).
+
+---
+
+## 📤 5b. FLUJO DE ENTREGA (extraído del bundle web `eminus4` v1.0.37)
+
+1. **Verificación:** se vuelve a pedir `Actividad/getActividadEstudiante/{c}/{a}` y se revisa `estaCerrada` / `esPorEquipos`.
+2. **Borrador (solo si no hay entrega, `idActividadEntrega == 0`):** `POST Actividad/InsertaActividadEntrega` con
+   `{idActividadEntrega:0, texto:"", idActividad, idCurso, visible:0, tieneAdjuntos:0, idEquipo:0, fechaEntrega:<ISO ahora>}` → responde `{"salida": <idActividadEntrega>}`.
+3. **Archivo:** `POST actividad/adjuntarEntrega?idCurso&idActividad&idActividadEntregas=<id>` multipart `file`. Los archivos se **agregan** a la entrega (no reemplazan).
+4. **Envío:** `POST Actividad/InsertaActividadEntrega` con `{idActividadEntrega:<id>, texto:<HTML>, idActividad, idCurso, visible:1, tieneAdjuntos:1, idEquipo:0, fechaEntrega:null}`.
+   - `texto` es obligatorio en el web (editor Froala). Si el alumno no modifica el comentario precargado se reenvía el `descEntrega` HTML original (conserva enlaces); si escribe otro, se manda el suyo; si no hay nada, `<p>Entrega: nombre</p>`.
+   - Respuestas reales: `adjuntarEntrega` → `[{"estado":"El archivo se adjuntó","idArchivosEntregas":…,"idActividadEntrega":…}]`; envío → `{"fechaEntrega":"…","estado":0,"salida":""}` (ese `estado:0` NO significa borrador: el `idEstado` real sigue en 1).
+- Código: `EminusApiClient.createDeliveryDraft / uploadDeliveryFile / submitDelivery`.
+- **Modo edición (UX):** si la entrega ya fue enviada (`estaEntregada`), los controles quedan ocultos tras el botón **"Editar entrega"** (`modoEdicion`). Al editar aparece un aviso (`txtEditHint`), los controles y "Cancelar edición". Tras enviar o al cambiar de actividad vuelve a solo lectura. Lógica centralizada en `actualizarControlesEntrega()`. Si no hay entrega, los controles se muestran directo.
+- **Quitar archivo:** botón "Quitar" en cada archivo de "Tu entrega" (`item_attachment.xml` → `btnDeleteAttachment`), visible solo si `puedeModificarEntrega()` (actividad abierta, individual y, si ya está entregada, en modo edición). Revalida la actividad y llama `EminusApiClient.deleteDeliveryFile`. No reenvía la entrega (igual que el web).
+
 ---
 
 ## 🛠️ 6. COMANDOS ÚTILES PARA EL ENTORNO (COPIAR Y PEGAR)
@@ -219,4 +279,9 @@ cd BodrioNus-Native
 
 # Ver si el dispositivo sigue conectado
 & "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" devices
+
+# Ver respuestas de la API (incluye los 3 pasos de entrega)
+& "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" logcat -s EMINUS_API
 ```
+
+Organización local (ignorada por git): scripts de ingeniería inversa en `tools/reverse-engineering/`, capturas en `screenshots/`.

@@ -3,12 +3,16 @@ package com.pako.eminus4.ui.courses
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.pako.eminus4.R
+import androidx.core.content.ContextCompat
 import com.pako.eminus4.data.model.Activity
+import com.pako.eminus4.data.model.EstadoAlumno
+import com.pako.eminus4.util.Plazos
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -30,7 +34,7 @@ class ActivityAdapter(
         private val onActivityClick: (Activity) -> Unit
     ) : RecyclerView.ViewHolder(itemView) {
 
-        private val txtEmoji: TextView  = itemView.findViewById(R.id.txtActivityEmoji)
+        private val imgIcono: ImageView = itemView.findViewById(R.id.imgActivityIcon)
         private val txtName: TextView   = itemView.findViewById(R.id.txtActivityName)
         private val txtDate: TextView   = itemView.findViewById(R.id.txtActivityDate)
         private val txtScore: TextView  = itemView.findViewById(R.id.txtActivityScore)
@@ -40,33 +44,41 @@ class ActivityAdapter(
         private val outputFmt = SimpleDateFormat("dd MMM yyyy", Locale("es"))
 
         fun bind(activity: Activity) {
-            txtEmoji.text = activity.getEmojiTipo()
+            imgIcono.setImageResource(activity.getIconoTipo())
             txtName.text  = activity.nombre
 
-            // Fecha de entrega / límite formateada
-            txtDate.text = formatearFecha(activity.fechaLimite)
+            val ctx = itemView.context
+            val estado = activity.estadoAlumno
+
+            // Fecha: plazo relativo si aún hay que hacerla, fecha normal en otro caso
+            if (estado.esPendiente) {
+                val p = Plazos.plazo(activity.terminoMillis)
+                txtDate.text = p.texto + if (activity.esPorEquipos) " · En equipo" else ""
+                txtDate.setTextColor(ActividadCardBinder.colorUrgencia(ctx, p.urgencia))
+            } else {
+                txtDate.text = formatearFecha(activity.fechaLimite) + if (activity.esPorEquipos) " · En equipo" else ""
+                txtDate.setTextColor(ContextCompat.getColor(ctx, R.color.text_secondary))
+            }
 
             // Calificación
             val cal = activity.calificacion
-            val max = activity.calificacionMax ?: 10.0
+            val max = activity.calificacionMax
             if (cal != null) {
-                txtScore.text = "${"%.1f".format(cal)}/${"%.0f".format(max)}"
-                txtScore.setTextColor(
-                    if (cal >= max * 0.6) 0xFF16A34A.toInt() else 0xFFDC2626.toInt()
-                )
-                txtStatus.text   = "Calificada"
-                txtStatus.setTextColor(0xFF16A34A.toInt())
+                txtScore.text = "${ActividadCardBinder.formatoNota(cal)}/${ActividadCardBinder.formatoNota(max)}"
+                txtScore.setTextColor(ContextCompat.getColor(ctx,
+                    if (cal >= max * 0.6) R.color.badge_success_text else R.color.badge_error_text))
             } else {
                 txtScore.text = "—"
-                txtScore.setTextColor(0xFF64748B.toInt())
-                if (activity.entregada) {
-                    txtStatus.text = "Entregada"
-                    txtStatus.setTextColor(0xFF2563EB.toInt())
-                } else {
-                    txtStatus.text = "Pendiente"
-                    txtStatus.setTextColor(0xFFF59E0B.toInt())
-                }
+                txtScore.setTextColor(ContextCompat.getColor(ctx, R.color.text_tertiary))
             }
+
+            // Estado con el criterio único (EstadoAlumno)
+            txtStatus.text = when (estado) {
+                EstadoAlumno.ESPERANDO -> "En revisión"   // corto: la columna es angosta
+                EstadoAlumno.BORRADOR -> "Borrador"
+                else -> estado.etiqueta
+            }
+            txtStatus.setTextColor(ActividadCardBinder.colorEstado(ctx, estado))
 
             itemView.setOnClickListener {
                 onActivityClick(activity)
