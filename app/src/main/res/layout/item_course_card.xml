@@ -92,7 +92,7 @@
                     android:background="@drawable/bg_stat_pill"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="4dp"
-                    android:text="📝 27 Actividades"
+                    android:text="27 Actividades"
                     android:textColor="@color/text_title"
                     android:textSize="11sp"
                     android:textStyle="bold" />
@@ -105,7 +105,7 @@
                     android:background="@drawable/bg_stat_pill"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="4dp"
-                    android:text="💬 1 Foro"
+                    android:text="1 Foro"
                     android:textColor="@color/text_title"
                     android:textSize="11sp" />
 
@@ -117,7 +117,7 @@
                     android:background="@drawable/bg_stat_pill"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="4dp"
-                    android:text="👥 36"
+                    android:text="36"
                     android:textColor="@color/text_secondary"
                     android:textSize="11sp" />
             </LinearLayout>

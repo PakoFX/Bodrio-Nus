@@ -122,11 +122,12 @@
                 android:padding="24dp"
                 android:visibility="gone">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="📚"
-                    android:textSize="48sp" />
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_library_books"
+                    app:tint="@color/text_tertiary" />
 
                 <TextView
                     android:id="@+id/txtEmptyMessage"

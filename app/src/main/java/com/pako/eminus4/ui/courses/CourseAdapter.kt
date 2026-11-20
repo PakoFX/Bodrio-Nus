@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.pako.eminus4.R
 import com.pako.eminus4.data.model.Course
+import com.pako.eminus4.util.iconoInicio
 
 class CourseAdapter(
     private val onCourseClick: (Course) -> Unit
@@ -80,9 +81,12 @@ class CourseAdapter(
             }
 
             // Contadores y métricas
-            badgeActivities.text = "📝 ${course.actividades} Act."
-            badgeForums.text = "💬 ${course.foros} Foro${if (course.foros == 1) "" else "s"}"
-            badgeStudents.text = "👥 ${course.integrantes}"
+            badgeActivities.text = "${course.actividades} Act."
+            badgeActivities.iconoInicio(R.drawable.ic_assignment, tamanoDp = 14, separacionDp = 4)
+            badgeForums.text = "${course.foros} Foro${if (course.foros == 1) "" else "s"}"
+            badgeForums.iconoInicio(R.drawable.ic_forum, tamanoDp = 14, separacionDp = 4)
+            badgeStudents.text = "${course.integrantes}"
+            badgeStudents.iconoInicio(R.drawable.ic_group, tamanoDp = 14, separacionDp = 4)
 
             itemView.setOnClickListener {
                 onCourseClick(course)

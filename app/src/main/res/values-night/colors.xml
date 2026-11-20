@@ -42,6 +42,12 @@
     <color name="stroke_alert">#0EA5E9</color>
     <color name="stroke_ok">#27354A</color>
 
+    <!-- Marca en tema oscuro (fondo de accesos rápidos) -->
+    <color name="brand_uv_green_light">#12302D</color>
+
+    <!-- Contador de accesos rápidos -->
+    <color name="badge_count_bg">#EF4444</color>
+
     <!-- Banner offline -->
     <color name="banner_offline_bg">#422006</color>
     <color name="banner_offline_text">#FDE68A</color>

@@ -43,12 +43,6 @@
             android:exported="false"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
 
-        <!-- Pantalla legacy de cursos (no launcher) -->
-        <activity
-            android:name=".ui.courses.CoursesActivity"
-            android:exported="false"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
-
         <!-- Pantalla de detalle de curso con actividades -->
         <activity
             android:name=".ui.courses.CourseDetailActivity"

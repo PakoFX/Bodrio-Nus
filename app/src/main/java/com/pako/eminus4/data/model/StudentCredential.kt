@@ -7,14 +7,19 @@ data class StudentCredential(
     @SerializedName("user") val user: String,
     @SerializedName("name") val name: String,
     @SerializedName("lastNames") val lastNames: String = "",
-    @SerializedName("program") val program: String = "Ingeniería de Software",
-    @SerializedName("region") val region: String = "Coatzacoalcos",
+    @SerializedName("program") val program: String = "",
+    @SerializedName("region") val region: String = "",
     @SerializedName("monthsValidity") val monthsValidity: String = "AGO-ENE",
     @SerializedName("yearValidity") val yearValidity: String = "2027",
     @SerializedName("expeditionDate") val expeditionDate: String = "",
     @SerializedName("photo") val photo: String? = null,
     @SerializedName("qrCode") val qrCode: String? = null,
-    @SerializedName("barCode") val barCode: String? = null
+    @SerializedName("barCode") val barCode: String? = null,
+    // Datos oficiales leídos de MiUV (szigral.aspx); null si aún no se sincronizó
+    @SerializedName("facultad") val facultad: String? = null,
+    @SerializedName("area") val area: String? = null,
+    @SerializedName("nivel") val nivel: String? = null,
+    @SerializedName("actualizadoMiuv") val actualizadoMiuv: Long? = null
 ) {
     fun getNombreCompleto(): String {
         return if (lastNames.isNotBlank()) "$name $lastNames".trim() else name
@@ -70,16 +75,33 @@ data class StudentCredential(
     }
 
     /**
-     * Devuelve la fotografía válida para la credencial oficial:
-     * Si la foto almacenada proviene de Eminus (avatar casual), se descarta y se usa
-     * la fotografía oficial institucional de MIUV.
+     * Fotografía para la credencial oficial:
+     *  1. Foto institucional guardada (no el avatar casual de Eminus).
+     *  2. La foto empaquetada en la app SOLO para su dueño (temporal, hasta traerla de MiUV).
+     *  3. Silueta genérica para cualquier otra persona: nunca mostrar la cara de alguien más.
      */
     fun getFotoValida(): Any {
         val p = photo
-        return if (!p.isNullOrBlank() && !p.contains("eminus", ignoreCase = true)) {
-            p
-        } else {
-            com.pako.eminus4.R.drawable.foto_credencial_oficial
+        return when {
+            !p.isNullOrBlank() && !esAvatarDeEminus(p) -> p
+            getMatriculaOficial() == MATRICULA_FOTO_EMPAQUETADA -> com.pako.eminus4.R.drawable.foto_credencial_oficial
+            else -> com.pako.eminus4.R.drawable.ic_nav_profile
         }
+    }
+
+    /** Foto oficial (MiUV o archivo local), o null si no hay. Para la tarjeta del Perfil. */
+    fun getFotoOficial(): String? = photo?.takeIf { it.isNotBlank() && !esAvatarDeEminus(it) }
+
+    /**
+     * Avatar casual subido a Eminus (no sirve como foto oficial).
+     * OJO: no basta con buscar "eminus" en el texto: las fotos locales viven en
+     * /data/user/0/com.pako.eminus4/..., que también lo contiene.
+     */
+    private fun esAvatarDeEminus(p: String): Boolean =
+        p.startsWith("http", ignoreCase = true) && p.contains("eminus.uv.mx", ignoreCase = true)
+
+    companion object {
+        /** Dueño de `foto_credencial_oficial.png`. Quitar cuando la foto venga de MiUV. */
+        private const val MATRICULA_FOTO_EMPAQUETADA = "S24022198"
     }
 }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fondo del botón principal: verde UV activo, gris cuando está deshabilitado -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false" android:color="@color/border_subtle" />
+    <item android:color="@color/brand_uv_green" />
+</selector>

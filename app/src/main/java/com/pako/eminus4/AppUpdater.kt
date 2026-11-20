@@ -144,7 +144,8 @@ object AppUpdater {
     ) {
         val mensajeNotas = if (notes.isNotBlank()) "\n\nNovedades:\n$notes" else ""
         AlertDialog.Builder(activity)
-            .setTitle("🚀 Actualización disponible ($tagName)")
+            .setTitle("Actualización disponible ($tagName)")
+            .setIcon(R.drawable.ic_rocket_launch)
             .setMessage("Hay una nueva versión de Bodrio-Nus disponible.$mensajeNotas\n\n¿Deseas descargar e instalar la actualización ahora?")
             .setPositiveButton("Actualizar") { _, _ ->
                 descargarEInstalarApk(activity, downloadUrl, apkFileName)

@@ -12,21 +12,37 @@ data class ActivityDetail(
     @SerializedName("fechaTermino")          val fechaTermino: String? = null,
     @SerializedName("fechaEntrega")          val fechaEntrega: String? = null,
     @SerializedName("fechaRevision")         val fechaRevision: String? = null,
-    @SerializedName("estado")                val estado: Int = 0,
-    @SerializedName("estadoEntrega")         val estadoEntrega: Int = 0,
+    // Int? a propósito: null = nunca tocada, 0 = borrador (ver EstadoAlumno). Gson sin constructor
+    // convertiría un null en 0 si el tipo fuera Int no-nulo.
+    @SerializedName("estado")                val estado: Int? = null,
+    @SerializedName("estadoEntrega")         val estadoEntrega: Int? = null,
     @SerializedName("tieneAdjuntos")         val tieneAdjuntos: Int = 0,
     @SerializedName("archivosActsConTamano") val archivosDocente: List<ActivityAttachment>? = null,
-    @SerializedName("idCurso")               val idCurso: Long = 0
+    @SerializedName("idCurso")               val idCurso: Long = 0,
+    // Estado de la ACTIVIDAD según Eminus web: 2 = abierta, 4 = abierta con prórroga.
+    // Nulo si la API no lo envía (se usa entonces la regla por fecha límite).
+    @SerializedName("estadoAct")             val estadoAct: Int? = null,
+    @SerializedName("porEquipos")            val porEquipos: Int = 0
 ) {
+    val esPorEquipos: Boolean
+        get() = porEquipos == 1
+
+    /** Regla de Eminus web: solo se puede entregar si estadoAct es 2 o 4. */
+    val admiteEntregaSegunEminus: Boolean?
+        get() = estadoAct?.let { it == 2 || it == 4 }
+
     val estaEntregada: Boolean
-        get() = estadoEntrega == 2 || estadoEntrega == 3 || estado == 2 || estado == 3 || calificacion != null
+        // estado 1 = enviada sin revisar (observado en vivo: tiene fechaEntrega y no está calificada)
+        get() = (estado ?: -1) in 1..4 || (estadoEntrega ?: -1) in 1..4 || calificacion != null
 
     val estaCalificada: Boolean
         get() = calificacion != null
 
     val estaCerrada: Boolean
         get() {
-            if (calificacion != null) return true
+            if (calificacion != null || estado == 3 || estado == 4) return true
+            // Si Eminus nos dice el estado real de la actividad, ese manda (respeta prórrogas)
+            admiteEntregaSegunEminus?.let { return !it }
             if (estado == 2 || estado == 3 || estadoEntrega == 2 || estadoEntrega == 3) return true
             fechaTermino?.let { iso ->
                 try {

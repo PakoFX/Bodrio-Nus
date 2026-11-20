@@ -30,6 +30,7 @@ import com.pako.eminus4.data.model.ExamItem
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicInteger
+import com.pako.eminus4.util.iconoInicio
 
 class ExamsActivity : AppCompatActivity() {
 
@@ -88,14 +89,14 @@ class ExamsActivity : AppCompatActivity() {
         adapter = ExamsAdapter { exam ->
             val estado = exam.getEstadoTexto()
             val msg = buildString {
-                append("📚 Curso: ${exam.nombreCurso}\n\n")
+                append("Curso: ${exam.nombreCurso}\n\n")
                 append("Estado: $estado\n")
                 val inicio = formatDate(exam.fechaInicio)
                 val fin = formatDate(exam.fechaTermino)
-                append("📅 Inicio: $inicio\n")
-                append("📅 Cierre: $fin\n")
+                append("Inicio: $inicio\n")
+                append("Cierre: $fin\n")
                 if (exam.calificacion != null) {
-                    append("\n🏆 Calificación: ${"%.1f".format(exam.calificacion)} / ${"%.0f".format(exam.valor ?: 10.0)} pts")
+                    append("\nCalificación: ${"%.1f".format(exam.calificacion)} / ${"%.0f".format(exam.valor ?: 10.0)} pts")
                 } else {
                     append("\nValor: ${"%.0f".format(exam.valor ?: 10.0)} pts")
                 }
@@ -211,7 +212,8 @@ class ExamsAdapter(
 
             val inicio = formatearFecha(item.fechaInicio)
             val fin = formatearFecha(item.fechaTermino)
-            txtExamDates.text = "📅 $inicio — $fin"
+            txtExamDates.text = "$inicio — $fin"
+            txtExamDates.iconoInicio(R.drawable.ic_event, tamanoDp = 14, separacionDp = 4)
 
             val valor = item.valor ?: 10.0
             val cal = item.calificacion

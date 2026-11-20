@@ -33,6 +33,7 @@ import com.pako.eminus4.data.model.MessageDetail
 import com.pako.eminus4.ui.viewer.FileViewerActivity
 import java.text.SimpleDateFormat
 import java.util.Locale
+import com.pako.eminus4.util.mostrarIconoArchivo
 
 class MessageDetailActivity : AppCompatActivity() {
 
@@ -176,13 +177,13 @@ class MessageDetailActivity : AppCompatActivity() {
 
             for (adj in adjuntos) {
                 val itemView = LayoutInflater.from(this).inflate(R.layout.item_attachment, layoutAttachmentsList, false)
-                val emoji = itemView.findViewById<TextView>(R.id.txtAttachmentEmoji)
+                val icono = itemView.findViewById<ImageView>(R.id.imgAttachmentIcon)
                 val nombre = itemView.findViewById<TextView>(R.id.txtAttachmentName)
                 val peso = itemView.findViewById<TextView>(R.id.txtAttachmentSize)
                 val btnView = itemView.findViewById<MaterialButton>(R.id.btnViewOnline)
                 val btnDownload = itemView.findViewById<MaterialButton>(R.id.btnDownload)
 
-                emoji.text = adj.getIconEmoji()
+                icono.mostrarIconoArchivo(adj.nombreOriginal)
                 nombre.text = adj.nombreOriginal
                 peso.text = "${adj.getTamanoLegible()} · Mensaje"
 
